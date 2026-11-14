@@ -52,11 +52,22 @@
     background:conic-gradient(from 220deg, var(--acc), var(--acc2), var(--gold), var(--acc));
     box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--fg) 20%, transparent);
   }
-  nav.links{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto}
+  nav.links{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; align-items:center}
   nav.links a{
     color:var(--fg2); padding:6px 10px; border-radius:8px; font-size:14px;
   }
   nav.links a:hover{background:var(--bg3); color:var(--fg); text-decoration:none}
+  nav.links a.nav-cta{
+    color:var(--acc);
+    border:1px solid color-mix(in srgb, var(--acc) 45%, transparent);
+    background:color-mix(in srgb, var(--acc) 10%, transparent);
+    font-weight:600;
+  }
+  nav.links a.nav-cta:hover{
+    color:var(--fg);
+    border-color:var(--acc);
+    background:color-mix(in srgb, var(--acc) 20%, transparent);
+  }
   .theme-btn{
     border:1px solid var(--line); background:var(--bg2); color:var(--fg2);
     width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:16px; line-height:1;
@@ -84,7 +95,7 @@
   .btn{
     display:inline-flex; align-items:center; gap:8px;
     padding:11px 20px; border-radius:10px; font-weight:600; font-size:15px;
-    border:1px solid transparent; cursor:pointer;
+    border:1px solid transparent; cursor:pointer; font-family:inherit;
   }
   .btn.primary{
     background:var(--acc); color:#fff;
@@ -161,6 +172,18 @@
   .stat .n{font-size:26px; font-weight:800; color:var(--acc)}
   .stat .l{color:var(--fg2); font-size:13px; margin-top:4px}
 
+  /* docs banner */
+  .docs-banner{
+    display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
+    background:
+      radial-gradient(700px 260px at 0% 0%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 65%),
+      var(--bg2);
+    border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px 32px;
+  }
+  .docs-banner h3{margin:0 0 6px; font-size:20px}
+  .docs-banner p{margin:0; color:var(--fg2); font-size:14.5px; max-width:60ch}
+
   /* contact */
   .contact{
     background:
@@ -175,8 +198,17 @@
     font-family:var(--mono); font-size:clamp(15px,2vw,20px);
     background:var(--bg); border:1px solid var(--line); border-radius:12px;
     padding:12px 20px; color:var(--fg);
+    cursor:pointer; transition:border-color .2s, color .2s;
   }
   .mail:hover{border-color:var(--acc); text-decoration:none}
+  .mail.copied{border-color:var(--acc2); color:var(--acc2)}
+
+  .linklike{
+    background:none; border:none; padding:0; margin:0;
+    color:var(--acc); font:inherit; cursor:pointer;
+  }
+  .linklike:hover{text-decoration:underline}
+  .linklike.copied{color:var(--acc2)}
 
   /* footer */
   footer{border-top:1px solid var(--line); padding:26px 22px; color:var(--muted); font-size:13px}
@@ -195,6 +227,7 @@
     section{padding:52px 18px}
     .grid.g3, .grid.g2{grid-template-columns:1fr}
     .contact{padding:28px 18px}
+    .docs-banner{padding:22px 18px}
     nav.links a{padding:6px 8px; font-size:13px}
     .topbar{gap:10px}
   }
@@ -213,6 +246,7 @@
       <a href="#features">Возможности</a>
       <a href="#why">Почему SDGE</a>
       <a href="#author">Автор</a>
+      <a href="documentation.html" class="nav-cta">Документация</a>
       <a href="#contact">Контакты</a>
     </nav>
     <button class="theme-btn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button>
@@ -230,8 +264,9 @@
         2D/3D физика и spatial-аудио. Собран одним человеком — с вниманием к каждой строке.
       </p>
       <div class="cta">
-        <a class="btn primary" href="#features">Посмотреть возможности</a>
-        <a class="btn ghost" href="mailto:myseleniumgroup@gmail.com">Написать нам</a>
+        <a class="btn primary" href="documentation.html">Документация</a>
+        <a class="btn ghost" href="#features">Посмотреть возможности</a>
+        <button class="btn ghost" type="button" data-copy-email>Скопировать почту</button>
       </div>
     </div>
 
@@ -394,8 +429,21 @@ while (!sdge_window_should_close(w)) {
   </div>
 </section>
 
+<!-- ======================== DOCS BANNER ======================== -->
+<section id="docs" class="alt">
+  <div class="wrap">
+    <div class="docs-banner reveal">
+      <div>
+        <h3>Документация движка</h3>
+        <p>Полный справочник по API, туториалы по рендеру, физике, аудио и редактору сцен — всё в одном месте.</p>
+      </div>
+      <a class="btn primary" href="documentation.html">Открыть документацию</a>
+    </div>
+  </div>
+</section>
+
 <!-- ======================== AUTHOR ======================== -->
-<section id="author" class="alt">
+<section id="author">
   <div class="wrap">
     <h2>Об авторе</h2>
     <p class="sub">Silver Diamond Game Engine создан одним разработчиком — от рендерера до редактора сцен.</p>
@@ -421,7 +469,7 @@ while (!sdge_window_should_close(w)) {
 </section>
 
 <!-- ======================== CONTACT ======================== -->
-<section id="contact">
+<section id="contact" class="alt">
   <div class="wrap">
     <div class="contact reveal">
       <h2>Связаться с нами</h2>
@@ -429,9 +477,9 @@ while (!sdge_window_should_close(w)) {
         Вопросы по движку, интеграция, кастомные фичи или предложения о сотрудничестве —
         пишите на почту. Отвечаем в течение пары дней.
       </p>
-      <a class="mail" href="mailto:myseleniumgroup@gmail.com">
+      <button class="mail" type="button" data-copy-email title="Нажмите, чтобы скопировать">
         ✉&nbsp; myseleniumgroup@gmail.com
-      </a>
+      </button>
     </div>
   </div>
 </section>
@@ -439,7 +487,7 @@ while (!sdge_window_should_close(w)) {
 <footer>
   <div class="wrap">
     <div>© Silver Diamond Game Engine · Автор: <strong>ExeBoi</strong></div>
-    <div>Сделано на C99 · OpenGL 3.3+ · <a href="mailto:myseleniumgroup@gmail.com">myseleniumgroup@gmail.com</a></div>
+    <div>Сделано на C99 · OpenGL 3.3+ · <button class="linklike" type="button" data-copy-email>myseleniumgroup@gmail.com</button></div>
   </div>
 </footer>
 
@@ -471,6 +519,50 @@ while (!sdge_window_should_close(w)) {
       });
     }, { threshold: 0.12 });
     els.forEach(el => io.observe(el));
+  })();
+
+  /* ---- copy email to clipboard ---- */
+  (function(){
+    const EMAIL = 'myseleniumgroup@gmail.com';
+
+    function feedback(el, text){
+      if (!el.dataset.originalHtml) el.dataset.originalHtml = el.innerHTML;
+      el.classList.add('copied');
+      el.innerHTML = text;
+      clearTimeout(el._copyTimer);
+      el._copyTimer = setTimeout(() => {
+        el.innerHTML = el.dataset.originalHtml;
+        el.classList.remove('copied');
+      }, 1600);
+    }
+
+    async function copy(text){
+      try{
+        if (navigator.clipboard && window.isSecureContext){
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      }catch(e){}
+      // fallback для http:// и file://
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly','');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch(e){}
+      ta.remove();
+      return ok;
+    }
+
+    document.querySelectorAll('[data-copy-email]').forEach(el => {
+      el.addEventListener('click', async () => {
+        const ok = await copy(EMAIL);
+        feedback(el, ok ? '✓&nbsp; Скопировано' : 'Не удалось скопировать');
+      });
+    });
   })();
 </script>
 </body>
