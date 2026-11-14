@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Silver Diamond Game Engine — лёгкий движок на C99</title>
 <meta name="description" content="Silver Diamond Game Engine — компактный кроссплатформенный игровой движок на C99 с PBR-lite рендером, glTF 2.0, физикой 2D/3D и встроенным редактором сцен.">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="shortcut icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <style>
   :root{
     --bg:#0e1016; --bg2:#141822; --bg3:#1c2230; --fg:#e8ebf2;
@@ -47,10 +50,9 @@
     display:flex; align-items:center; gap:18px;
   }
   .logo{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px}
-  .logo .mark{
-    width:26px; height:26px; border-radius:8px;
-    background:conic-gradient(from 220deg, var(--acc), var(--acc2), var(--gold), var(--acc));
-    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--fg) 20%, transparent);
+  .logo img.mark{
+    width:28px; height:28px; border-radius:8px; object-fit:contain;
+    display:block;
   }
   nav.links{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; align-items:center}
   nav.links a{
@@ -154,11 +156,12 @@
     padding:26px;
   }
   .avatar{
-    width:180px; height:180px; border-radius:24px;
-    background:conic-gradient(from 220deg, var(--acc), var(--acc2), var(--gold), var(--acc));
+    width:180px; height:180px; border-radius:24px; overflow:hidden;
     display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:40px;
+    background:conic-gradient(from 220deg, var(--acc), var(--acc2), var(--gold), var(--acc));
     box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--fg) 20%, transparent);
   }
+  .avatar img{width:100%; height:100%; object-fit:cover; display:block}
   .author h3{margin:0 0 4px; font-size:22px}
   .author .nick{color:var(--gold); font-family:var(--mono); font-size:15px}
   .author p{color:var(--fg2); margin:10px 0 0; font-size:14.5px}
@@ -241,7 +244,10 @@
 
 <header class="top">
   <div class="topbar">
-    <div class="logo"><span class="mark"></span>Silver Diamond</div>
+    <a class="logo" href="#" style="color:inherit;text-decoration:none">
+      <img class="mark" src="icon.png" alt="Silver Diamond">
+      Silver Diamond
+    </a>
     <nav class="links">
       <a href="#features">Возможности</a>
       <a href="#why">Почему SDGE</a>
@@ -449,7 +455,9 @@ while (!sdge_window_should_close(w)) {
     <p class="sub">Silver Diamond Game Engine создан одним разработчиком — от рендерера до редактора сцен.</p>
 
     <div class="author reveal">
-      <div class="avatar">EB</div>
+      <div class="avatar">
+        <img src="icon.png" alt="ExeBoi">
+      </div>
       <div>
         <h3>ExeBoi</h3>
         <div class="nick">@ExeBoi · independent gamedev</div>
@@ -543,7 +551,6 @@ while (!sdge_window_should_close(w)) {
           return true;
         }
       }catch(e){}
-      // fallback для http:// и file://
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.setAttribute('readonly','');
