@@ -3,1986 +3,2028 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Silver Diamond Game Engine — Документация</title>
-<meta name="description" content="Полное руководство по Silver Diamond Game Engine — компактному C99-движку с PBR-рендером, glTF, физикой и spatial-аудио.">
+<title>Silver Diamond Game Engine — документация для разработчиков игр</title>
+<meta name="description" content="Документация Silver Diamond Game Engine: окно и ввод, PBR-рендер, glTF/GLB со скелетной анимацией, текстуры, GUI, звук, физика 2D/3D и сцены на C99.">
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="shortcut icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <style>
-  :root{
-    --bg:#0e1016; --bg2:#141822; --bg3:#1c2230; --fg:#e8ebf2;
-    --fg2:#a4acbd; --muted:#6a7386;
-    --acc:#6ea8ff; --acc2:#8affc1; --gold:#f0c86a; --warn:#ffb86b;
-    --line:#242a3a; --radius:14px; --radius-sm:8px;
-    --mono:"JetBrains Mono","Fira Code",Consolas,Menlo,monospace;
-    --shadow: 0 10px 40px rgba(0,0,0,.35);
+  :root {
+    --bg: #000000;
+    --bg-soft: #0a0a0a;
+    --panel: #262626;
+    --panel-2: #303030;
+    --text: #ffffff;
+    --muted: #a6a6a6;
+    --accent: #7aa2ff;
+    --accent-2: #a8c7ff;
+    --unity-blue: #3358d4;
+    --green: #56d364;
+    --yellow: #e3b341;
+    --red: #ff7b72;
+    --purple: #b98cff;
+    --border: #333333;
+    --code-bg: #111111;
+    --pill: 999px;
+    --shadow: 0 24px 70px rgba(0,0,0,.5);
   }
-  [data-theme="light"]{
-    --bg:#f6f7fb; --bg2:#ffffff; --bg3:#eef1f7; --fg:#12151c;
-    --fg2:#4b5265; --muted:#7c8498;
-    --acc:#2b6fe6; --acc2:#0f9b5c; --gold:#b7860b; --warn:#c26a11;
-    --line:#dfe3ee;
-    --shadow: 0 10px 40px rgba(30,40,80,.10);
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 Inter, "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{
-    background:var(--bg); color:var(--fg); font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif;
-    -webkit-font-smoothing:antialiased;
+  code, pre, kbd {
+    font-family: "JetBrains Mono", "Cascadia Code", "Fira Code", Consolas, "Courier New", monospace;
+    font-size: 14px;
   }
-  a{color:var(--acc); text-decoration:none}
-  a:hover{text-decoration:underline}
-  code,pre{font-family:var(--mono)}
-  code{background:var(--bg3); padding:2px 7px; border-radius:6px; color:var(--acc2); font-size:.9em}
-  pre{background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:16px 18px; overflow:auto; font-size:13.5px; line-height:1.6; margin:14px 0}
-  pre code{background:transparent; color:inherit; padding:0; font-size:inherit}
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
 
-  /* ---------- topbar ---------- */
-  header.top{
-    position:sticky; top:0; z-index:50;
-    background:color-mix(in srgb, var(--bg) 85%, transparent);
-    backdrop-filter:saturate(140%) blur(10px);
-    -webkit-backdrop-filter:saturate(140%) blur(10px);
-    border-bottom:1px solid var(--line);
+  /* ---------------------------------------------------------------- layout */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 292px;
+    flex: 0 0 292px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--bg-soft);
+    border-right: 1px solid var(--border);
+    padding: 22px 16px 40px;
   }
-  .topbar{
-    max-width:1480px; margin:0 auto; padding:12px 22px;
-    display:flex; align-items:center; gap:18px;
+  .sidebar .brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 8px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
   }
-  .logo{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px; color:inherit; text-decoration:none}
-  .logo:hover{text-decoration:none}
-  .logo img.mark{width:26px; height:26px; border-radius:7px; object-fit:contain; display:block}
-  .logo .sub-tag{color:var(--muted); font-weight:500; font-size:13px; margin-left:4px}
-  nav.links{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; align-items:center}
-  nav.links a{color:var(--fg2); padding:6px 10px; border-radius:8px; font-size:13.5px}
-  nav.links a:hover{background:var(--bg3); color:var(--fg); text-decoration:none}
-  .theme-btn{
-    border:1px solid var(--line); background:var(--bg2); color:var(--fg2);
-    width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:16px; line-height:1;
+  .brand-mark {
+    width: 46px; height: 38px;
+    object-fit: contain;
+    display: block;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 3px 12px rgba(51,88,212,.55));
   }
-  .theme-btn:hover{color:var(--fg); border-color:var(--acc)}
-
-  /* ---------- layout ---------- */
-  .layout{
-    max-width:1480px; margin:0 auto;
-    display:grid; grid-template-columns:280px 1fr; gap:0;
-    min-height:calc(100vh - 60px);
+  .brand-name { font-weight: 700; letter-spacing: .4px; font-size: 14px; }
+  .brand-sub { color: var(--muted); font-size: 12px; }
+  .sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+  .sidebar nav a {
+    display: block;
+    color: var(--muted);
+    padding: 7px 12px;
+    border-radius: var(--pill);
+    font-size: 13.5px;
+    border-left: 2px solid transparent;
   }
-  aside.sidebar{
-    position:sticky; top:60px;
-    height:calc(100vh - 60px);
-    overflow-y:auto;
-    padding:22px 12px 60px 22px;
-    border-right:1px solid var(--line);
-    font-size:14px;
-    scrollbar-width:thin;
+  .sidebar nav a:hover { color: var(--text); background: var(--panel); text-decoration: none; }
+  .sidebar nav a.active {
+    color: var(--text);
+    background: rgba(51,88,212,.22);
+    border-left-color: var(--accent);
   }
-  aside.sidebar::-webkit-scrollbar{width:8px}
-  aside.sidebar::-webkit-scrollbar-thumb{background:var(--bg3); border-radius:4px}
-  .side-group{margin-bottom:18px}
-  .side-label{
-    font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;
-    color:var(--muted); padding:6px 10px; margin-bottom:2px;
+  .sidebar nav .group {
+    color: #6e6e6e;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    margin: 18px 12px 4px;
   }
-  .side-item{
-    display:block; padding:7px 10px; border-radius:8px; cursor:pointer;
-    color:var(--fg2); border:none; background:none; width:100%; text-align:left;
-    font:inherit; font-size:13.5px; line-height:1.4;
-    transition:background .12s, color .12s;
-  }
-  .side-item:hover{background:var(--bg3); color:var(--fg)}
-  .side-item.active{
-    background:color-mix(in srgb, var(--acc) 14%, transparent);
-    color:var(--acc);
-    font-weight:600;
-  }
-
-  main.content{
-    padding:32px 44px 80px;
-    max-width:960px;
-    min-width:0;
+  .sidebar .version {
+    margin: 22px 10px 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
   }
 
-  /* ---------- typography ---------- */
-  .page{display:none}
-  .page.active{display:block; animation:fadeIn .18s ease-out}
-  @keyframes fadeIn{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+  main { flex: 1; min-width: 0; padding: 56px 56px 120px; max-width: 1120px; }
 
-  h1{font-size:clamp(26px,3vw,34px); margin:0 0 12px; letter-spacing:-.4px; line-height:1.2}
-  h2{font-size:22px; margin:36px 0 10px; letter-spacing:-.2px; padding-top:14px; border-top:1px solid var(--line)}
-  h2:first-of-type{border-top:none; padding-top:0; margin-top:8px}
-  h3{font-size:16.5px; margin:22px 0 8px; color:var(--fg)}
-  h4{font-size:14.5px; margin:16px 0 6px; color:var(--acc2); font-weight:600}
-  p{margin:8px 0 12px; color:var(--fg2)}
-  ul,ol{padding-left:22px; margin:8px 0 12px; color:var(--fg2)}
-  li{margin:4px 0}
-  strong{color:var(--fg)}
-  .lead{font-size:16.5px; color:var(--fg2); margin-bottom:18px}
+  /* --------------------------------------------------------------- heading */
+  .hero { margin-bottom: 48px; }
+  .hero .kicker {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+  }
+  h1 { font-size: 48px; line-height: 1.05; margin: 10px 0 16px; letter-spacing: -.03em; font-weight: 500; }
+  .hero p { color: var(--muted); font-size: 18px; max-width: 760px; margin: 0; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: var(--pill);
+    padding: 5px 14px;
+    font-size: 12.5px;
+  }
+  .badge b { color: var(--text); font-weight: 600; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
 
-  .hero-badge{
-    display:inline-flex; align-items:center; gap:8px;
-    font-size:11.5px; letter-spacing:.6px; text-transform:uppercase; color:var(--acc2);
-    border:1px solid color-mix(in srgb, var(--acc2) 45%, transparent);
-    background:color-mix(in srgb, var(--acc2) 8%, transparent);
-    padding:4px 11px; border-radius:999px; margin-bottom:14px;
+  h2 {
+    font-size: 30px;
+    font-weight: 500;
+    margin: 62px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: -.02em;
+    scroll-margin-top: 20px;
+  }
+  h3 { font-size: 20px; margin: 34px 0 10px; color: #ffffff; font-weight: 600; scroll-margin-top: 20px; }
+  h4 { font-size: 15px; margin: 22px 0 8px; color: var(--accent-2); }
+  p { margin: 10px 0; }
+  ul, ol { margin: 10px 0; padding-left: 24px; }
+  li { margin: 5px 0; }
+  li::marker { color: var(--muted); }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 34px 0; }
+
+  /* ------------------------------------------------------------------ code */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    line-height: 1.55;
+    margin: 14px 0 22px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+  }
+  pre code { font-size: 13.5px; }
+  :not(pre) > code {
+    background: rgba(255,255,255,.09);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 6px;
+    padding: 1px 6px;
+    color: #ffffff;
+    white-space: nowrap;
+  }
+  kbd {
+    background: var(--panel);
+    border: 1px solid #4a4a4a;
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: #ffffff;
+    white-space: nowrap;
+  }
+  .filename {
+    display: inline-block;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    color: var(--muted);
+    font: 12px/1 "JetBrains Mono", Consolas, monospace;
+    padding: 7px 12px;
+    margin: 18px 0 -14px;
+    position: relative;
+    top: 0;
+  }
+  .filename + pre { border-top-left-radius: 0; margin-top: 0; }
+
+  .kw { color: #ff7b72; }
+  .ty { color: #79c0ff; }
+  .fn { color: #d2a8ff; }
+  .st { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; }
+  .num { color: #f2cc60; }
+
+  /* --------------------------------------------------------------- callout */
+  .note, .warn, .tip, .danger {
+    border: 1px solid var(--border);
+    border-left-width: 4px;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 18px 0;
+    background: var(--panel);
+  }
+  .note { border-left-color: var(--accent); }
+  .warn { border-left-color: var(--yellow); }
+  .tip { border-left-color: var(--green); }
+  .danger { border-left-color: var(--red); }
+  .note b, .warn b, .tip b, .danger b { color: #ffffff; }
+  .note .label, .warn .label, .tip .label, .danger .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .note .label { color: var(--accent); }
+  .warn .label { color: var(--yellow); }
+  .tip .label { color: var(--green); }
+  .danger .label { color: var(--red); }
+
+  /* ---------------------------------------------------------------- tables */
+  .table-wrap { overflow-x: auto; margin: 16px 0 24px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+    background: #141414;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--panel); color: #ffffff; font-weight: 600; font-size: 13px; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: rgba(122,162,255,.06); }
+  td code { white-space: nowrap; }
+
+  /* ------------------------------------------------------------ ui helpers */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 18px 0 26px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card h4 { margin: 0 0 6px; color: #ffffff; font-size: 15px; }
+  .card p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: var(--pill);
+    padding: 1px 8px;
+    margin-left: 6px;
+    vertical-align: 1px;
+  }
+  .pill.ok { background: rgba(86,211,100,.14); color: var(--green); border: 1px solid rgba(86,211,100,.35); }
+  .pill.no { background: rgba(255,123,114,.12); color: var(--red); border: 1px solid rgba(255,123,114,.35); }
+  .pill.partial { background: rgba(227,179,65,.12); color: var(--yellow); border: 1px solid rgba(227,179,65,.35); }
+
+  .anchor {
+    color: var(--muted);
+    font-weight: 400;
+    opacity: 0;
+    margin-left: 8px;
+    font-size: 18px;
+  }
+  h2:hover .anchor, h3:hover .anchor { opacity: 1; }
+
+  footer {
+    margin-top: 70px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
   }
 
-  /* tables */
-  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:14px}
-  th{text-align:left; padding:9px 12px; background:var(--bg3); color:var(--fg); font-weight:600; border-bottom:1px solid var(--line)}
-  td{padding:8px 12px; border-bottom:1px solid var(--line); color:var(--fg2); vertical-align:top}
-  tr:last-child td{border-bottom:none}
-  td code{font-size:.88em}
-
-  /* callouts */
-  .callout{
-    padding:12px 16px; border-radius:10px; margin:14px 0;
-    border-left:3px solid var(--acc); background:color-mix(in srgb, var(--acc) 7%, transparent);
-    font-size:14px; color:var(--fg2);
-  }
-  .callout.tip{border-left-color:var(--acc2); background:color-mix(in srgb, var(--acc2) 7%, transparent)}
-  .callout.warn{border-left-color:var(--warn); background:color-mix(in srgb, var(--warn) 7%, transparent)}
-  .callout strong{color:var(--fg); display:block; margin-bottom:3px}
-
-  /* api signature cards */
-  .api{
-    background:var(--bg2); border:1px solid var(--line); border-radius:10px;
-    padding:14px 16px; margin:10px 0; font-size:14px;
-  }
-  .api .sig{font-family:var(--mono); color:var(--fg); font-size:13.5px; line-height:1.7}
-  .api .sig .type{color:var(--acc)}
-  .api .sig .name{color:var(--acc2); font-weight:600}
-  .api .sig .arg{color:var(--fg2)}
-  .api .desc{color:var(--fg2); font-size:13.5px; margin-top:6px}
-
-  /* sub-tabs inside page */
-  .subtabs{
-    display:flex; gap:6px; flex-wrap:wrap; margin:18px 0 6px;
-    padding-bottom:8px; border-bottom:1px solid var(--line);
-  }
-  .subtabs button{
-    padding:6px 12px; border:1px solid var(--line); background:var(--bg2); color:var(--fg2);
-    border-radius:8px; cursor:pointer; font:inherit; font-size:13px;
-  }
-  .subtabs button:hover{color:var(--fg); border-color:var(--acc)}
-  .subtabs button.active{background:color-mix(in srgb, var(--acc) 16%, transparent); color:var(--acc); border-color:var(--acc)}
-
-  /* mobile */
-  @media (max-width: 900px){
-    .layout{grid-template-columns:1fr}
-    aside.sidebar{
-      position:relative; top:0; height:auto; max-height:280px;
-      border-right:none; border-bottom:1px solid var(--line);
-      padding:14px;
+  /* ------------------------------------------------------------- responsive */
+  @media (max-width: 1000px) {
+    .layout { display: block; }
+    .sidebar {
+      position: static;
+      width: auto;
+      height: auto;
+      border-right: 0;
+      border-bottom: 1px solid var(--border);
+      padding: 18px 20px;
     }
-    main.content{padding:24px 18px 60px; max-width:100%}
-    nav.links{display:none}
+    .sidebar nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+    .sidebar .group { grid-column: 1 / -1; }
+    main { padding: 36px 22px 90px; }
+    h1 { font-size: 34px; }
+    h2 { font-size: 25px; }
   }
 
-  /* small responsive helpers */
-  @media (max-width: 620px){
-    pre{font-size:12.5px; padding:12px}
-    table{font-size:13px}
-    th,td{padding:7px 8px}
-  }
-
-  /* footer inside content */
-  .page-footer{
-    margin-top:48px; padding-top:20px; border-top:1px solid var(--line);
-    color:var(--muted); font-size:13px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  @media print {
+    :root {
+      --bg: #fff; --panel: #fff; --panel-2: #f6f8fa; --text: #1f2328;
+      --muted: #57606a; --border: #d0d7de; --code-bg: #f6f8fa;
+      --accent: #0969da; --accent-2: #0550ae;
+    }
+    .sidebar { display: none; }
+    main { max-width: none; padding: 0; }
+    pre { break-inside: avoid; }
+    h2 { break-after: avoid; }
   }
 </style>
 </head>
 <body>
+<div class="layout">
 
-<header class="top">
-  <div class="topbar">
-    <a class="logo" href="index.html">
-      <img class="mark" src="icon.png" alt="">
-      Silver Diamond
-      <span class="sub-tag">Документация</span>
-    </a>
-    <nav class="links">
-      <a href="index.html">Главная</a>
-      <a href="#overview" data-nav="overview">Обзор</a>
-      <a href="#quickstart" data-nav="quickstart">Быстрый старт</a>
-      <a href="#renderer" data-nav="renderer">Рендерер</a>
-      <a href="#model" data-nav="model">Модели</a>
-      <a href="#physics3d" data-nav="physics3d">Физика</a>
-    </nav>
-    <button class="theme-btn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button>
+<!-- =========================================================== SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">
+    <img class="brand-mark" src="icon.png" alt="Silver Diamond">
+    <div>
+      <div class="brand-name">SILVER DIAMOND</div>
+      <div class="brand-sub">Game Engine 0.4</div>
+    </div>
+  </div>
+
+  <nav id="toc">
+    <div class="group">Начало</div>
+    <a href="#intro">Введение</a>
+    <a href="#install">Установка и сборка</a>
+    <a href="#first-game">Первая игра</a>
+    <a href="#loop">Главный цикл</a>
+
+    <div class="group">Основа</div>
+    <a href="#window">Окно и ввод</a>
+    <a href="#renderer">Рендерер</a>
+    <a href="#math">Математика</a>
+    <a href="#camera3d">3D-камера</a>
+    <a href="#lighting">Свет</a>
+
+    <div class="group">Контент</div>
+    <a href="#models">Модели glTF</a>
+    <a href="#animations">Анимации и скины</a>
+    <a href="#textures">Текстуры</a>
+    <a href="#fonts">Шрифты и UI-рендер</a>
+    <a href="#gui">GUI</a>
+    <a href="#audio">Звук</a>
+
+    <div class="group">Игровая логика</div>
+    <a href="#physics3d">Физика 3D</a>
+    <a href="#physics2d">Физика 2D</a>
+    <a href="#scenes">Сцены</a>
+    <a href="#assets">Ассеты и память</a>
+
+    <div class="group">Инструменты</div>
+    <a href="#editor">Редактор сцен</a>
+    <a href="#packaging">Сборка игры</a>
+
+    <div class="group">Справочник</div>
+    <a href="#limits">Ограничения</a>
+    <a href="#troubleshooting">Траблшутинг</a>
+    <a href="#license">Лицензии</a>
+  </nav>
+
+  <div class="version">
+    Версия документа: 1.0<br>
+    Язык: C99 · OpenGL 3.3+
+  </div>
+</aside>
+
+<!-- ============================================================== MAIN -->
+<main>
+
+<header class="hero">
+  <div class="kicker">Документация для разработчиков игр</div>
+  <h1>Silver Diamond Game Engine</h1>
+  <p>
+    Небольшой игровой движок на C99: окно и ввод, PBR-lite рендер,
+    glTF/GLB со скелетной анимацией, текстуры, шрифты, GUI, пространственный
+    звук, физика 2D/3D и менеджер сцен. Всё ядро собирается в одну
+    динамическую библиотеку, а игра линкуется с публичным C-API.
+  </p>
+  <div class="badges">
+    <span class="badge"><span class="dot"></span> C99</span>
+    <span class="badge"><b>OpenGL</b> 3.3+</span>
+    <span class="badge"><b>Windows</b> / Linux</span>
+    <span class="badge"><b>glTF</b> 2.0 + GLB</span>
+    <span class="badge">SDK: <b>API/include</b></span>
   </div>
 </header>
 
-<div class="layout">
+<!-- ============================================================== INTRO -->
+<h2 id="intro">Введение <a class="anchor" href="#intro">#</a></h2>
 
-  <!-- ============================================================ SIDEBAR -->
-  <aside class="sidebar" aria-label="Навигация по документации">
+<p>
+  Silver Diamond — «батарейки в комплекте»: один заголовок
+  <code>&lt;sdge.h&gt;</code> подключает все модули, а игра не трогает
+  OpenGL напрямую. Рендерер, загрузчики, GUI и физика живут внутри
+  <code>sdge.dll</code> / <code>libsdge.so</code>.
+</p>
 
-    <div class="side-group">
-      <div class="side-label">Начало</div>
-      <button class="side-item" data-tab="overview">Обзор движка</button>
-      <button class="side-item" data-tab="install">Установка</button>
-      <button class="side-item" data-tab="quickstart">Быстрый старт</button>
-    </div>
+<div class="cards">
+  <div class="card"><h4>Рендер</h4><p>Один forward-шейдер: PBR-lite, ambient + sun + до 8 точечных источников, 5 текстурных слотов, alpha-режимы, скининг.</p></div>
+  <div class="card"><h4>Контент</h4><p>glTF 2.0 / GLB, PNG/JPG/TGA/BMP/HDR через stb_image, TTF/OTF шрифты, WAV и MP3.</p></div>
+  <div class="card"><h4>Логика</h4><p>Твёрдые тела 2D и 3D (импульсный решатель), сцены с плавными переходами, пространственный звук.</p></div>
+  <div class="card"><h4>Инструменты</h4><p>Редактор сцен с иерархией, гизмо, наложением текстур и экспортом в glTF.</p></div>
+</div>
 
-    <div class="side-group">
-      <div class="side-label">Ядро</div>
-      <button class="side-item" data-tab="window">Окно и ввод</button>
-      <button class="side-item" data-tab="math">Математика</button>
-    </div>
+<h3>Как читать документацию</h3>
+<ul>
+  <li>Разделы идут от простого к сложному; каждый содержит готовые фрагменты кода.</li>
+  <li>Код в примерах предполагает <code>#include &lt;sdge.h&gt;</code> и подключённый SDK.</li>
+  <li>Все функции с префиксом <code>sdge_</code> — высокоуровневые, <code>sdgr_</code> — рендерер, <code>sdga_</code> — ассеты, <code>sdph2_/sdph3_</code> — физика, <code>sdui_</code> — 2D-рендер.</li>
+</ul>
 
-    <div class="side-group">
-      <div class="side-label">Ресурсы</div>
-      <button class="side-item" data-tab="gltf">glTF-модели</button>
-      <button class="side-item" data-tab="texture">Изображения</button>
-      <button class="side-item" data-tab="font">Шрифты</button>
-      <button class="side-item" data-tab="audioclip">Аудио-файлы</button>
-    </div>
+<div class="tip">
+  <span class="label">Совет</span>
+  Начните с раздела <a href="#first-game">«Первая игра»</a>: там полный
+  компилируемый пример, который можно взять за основу проекта.
+</div>
 
-    <div class="side-group">
-      <div class="side-label">3D-графика</div>
-      <button class="side-item" data-tab="renderer">Рендерер</button>
-      <button class="side-item" data-tab="mesh">GPU-меши</button>
-      <button class="side-item" data-tab="model">Модели</button>
-      <button class="side-item" data-tab="camera3d">Камера 3D</button>
-      <button class="side-item" data-tab="light">Освещение</button>
-    </div>
+<!-- ============================================================ INSTALL -->
+<h2 id="install">Установка и сборка <a class="anchor" href="#install">#</a></h2>
 
-    <div class="side-group">
-      <div class="side-label">Анимация</div>
-      <button class="side-item" data-tab="anim">Плеер анимаций</button>
-    </div>
+<h3>Требования</h3>
+<ul>
+  <li><b>Компилятор C99:</b> MinGW GCC (Windows), GCC или Clang (Linux).</li>
+  <li><b>Python 3.8+</b> — только для сборки движка (<code>build.py</code>).</li>
+  <li><b>OpenGL 3.3+</b> и системные библиотеки окна: <code>opengl32</code>, <code>gdi32</code>, <code>user32</code>, <code>winmm</code> на Windows; <code>libGL</code>, <code>libX11</code>, опционально <code>libasound</code> на Linux.</li>
+</ul>
 
-    <div class="side-group">
-      <div class="side-label">2D и UI</div>
-      <button class="side-item" data-tab="camera2d">Камера 2D</button>
-      <button class="side-item" data-tab="ui">UI-рендерер</button>
-      <button class="side-item" data-tab="gui">GUI-система</button>
-    </div>
+<h3>Сборка движка</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Команда</th><th>Что делает</th></tr></thead>
+  <tbody>
+    <tr><td><code>python build.py</code></td><td>Собирает <code>sdge.dll</code> и приложение из <code>src/</code>.</td></tr>
+    <tr><td><code>python build.py run</code></td><td>Собирает и запускает приложение.</td></tr>
+    <tr><td><code>python build.py rebuild</code></td><td>Полная пересборка.</td></tr>
+    <tr><td><code>python build.py clean</code></td><td>Удаляет <code>build/</code>.</td></tr>
+    <tr><td><code>python build.py sdk</code></td><td>Выгружает публичные заголовки и библиотеки в <code>API/</code>.</td></tr>
+    <tr><td><code>python build.py editor</code></td><td>Собирает редактор сцен.</td></tr>
+    <tr><td><code>python build.py demo --demo texture_demo</code></td><td>Собирает демо с текстурами и анимацией.</td></tr>
+    <tr><td><code>python build.py test</code></td><td>Прогоняет тесты физики без окна.</td></tr>
+  </tbody>
+</table>
+</div>
 
-    <div class="side-group">
-      <div class="side-label">Аудио</div>
-      <button class="side-item" data-tab="audio">Spatial-аудио</button>
-    </div>
+<p>Полезные ключи: <code>--debug</code> (<code>-O0 -g</code>), <code>--nogl</code> (без OpenGL), <code>--name NAME</code>, <code>--wsl</code>.</p>
 
-    <div class="side-group">
-      <div class="side-label">Физика</div>
-      <button class="side-item" data-tab="physics2d">Физика 2D</button>
-      <button class="side-item" data-tab="physics3d">Физика 3D</button>
-    </div>
+<p>Результат сборки раскладывается по платформе и варианту:</p>
+<pre><code>build/&lt;platform&gt;/&lt;variant&gt;/sdge.dll        # движок (Windows)
+build/&lt;platform&gt;/&lt;variant&gt;/libsdge.a       # import-библиотека
+build/&lt;platform&gt;/&lt;variant&gt;/libsdge.so      # движок (Linux)
+build/&lt;platform&gt;/&lt;variant&gt;/obj/            # объектные файлы
+&lt;platform&gt; = windows | linux
+&lt;variant&gt;  = release | release_nogl | debug | debug_nogl</code></pre>
 
-    <div class="side-group">
-      <div class="side-label">Сцены и редактор</div>
-      <button class="side-item" data-tab="scene">Менеджер сцен</button>
-      <button class="side-item" data-tab="editor">Редактор сцен</button>
-    </div>
-  </aside>
+<h3>SDK для игры</h3>
+<p>Команда <code>python build.py sdk</code> создаёт:</p>
+<ul>
+  <li><code>API/include/</code> — публичные заголовки (включая <code>sdge.h</code>);</li>
+  <li><code>API/lib/&lt;platform&gt;/&lt;variant&gt;/</code> — <code>libsdge.a</code> + <code>sdge.dll</code> (Windows) или <code>libsdge.so</code> (Linux).</li>
+</ul>
 
-  <!-- ============================================================ CONTENT -->
-  <main class="content">
+<div class="note">
+  <span class="label">Важно</span>
+  Игра включает только <code>API/include</code> и линкуется с библиотекой из
+  <code>API/lib</code>. Внутренние заголовки из <code>core/</code> для игры не нужны.
+</div>
 
-    <!-- ======================== OVERVIEW ======================== -->
-    <section class="page" id="overview">
-      <span class="hero-badge">Silver Diamond Game Engine 0.2</span>
-      <h1>Обзор движка</h1>
-      <p class="lead">Silver Diamond Game Engine — компактный кроссплатформенный движок на чистом C99. Один шейдер для всего 3D, zero-copy загрузка glTF, свой сканер JSON, атлас шрифтов, 2D/3D физика и spatial-аудио — без внешних зависимостей, кроме OpenGL и оконного слоя.</p>
+<h3>Что нового в загрузчике glTF</h3>
+<p>
+  В этой версии исправлена загрузка больших скачанных моделей: JSON-парсер
+  больше не ограничен 4096 токенами, поддерживает UTF-8 BOM, несколько
+  буферов, percent-encoded URI (<code>%20</code>), нормализованные целые
+  accessor'ы, а также терпимо относится к <code>extensionsRequired</code>.
+</p>
 
-      <h2>Ключевые принципы</h2>
-      <table>
-        <tr><th>Принцип</th><th>Как реализовано</th></tr>
-        <tr><td>Единый шейдер для 3D</td><td>Forward PBR-lite: ambient + sun + до 8 point lights, скиннинг, нормал-маппинг, alphaMode OPAQUE/MASK/BLEND</td></tr>
-        <tr><td>Zero-copy glTF</td><td>Данные вершин читаются прямо из бинарного чанка — GPU-загрузка без промежуточных копий</td></tr>
-        <tr><td>Одна арена на модель</td><td>Загрузка = O(#блоков) malloc'ов, освобождение — один вызов</td></tr>
-        <tr><td>Стабильные указатели</td><td>Физические тела и аудио-источники не двигаются в памяти при добавлении новых</td></tr>
-        <tr><td>Детерминизм</td><td>Физика не зависит от порядка вызовов — можно тестировать без окна</td></tr>
-        <tr><td>Один draw call для UI</td><td>Все прямоугольники и глифы батчатся в один VBO, SDF-шейдер</td></tr>
-      </table>
+<!-- ========================================================= FIRST GAME -->
+<h2 id="first-game">Первая игра <a class="anchor" href="#first-game">#</a></h2>
 
-      <h2>Модули</h2>
-      <table>
-        <tr><th>Модуль</th><th>Заголовок</th><th>Назначение</th></tr>
-        <tr><td>Окно</td><td><code>graphics/window.h</code></td><td>Win32/WGL и X11/GLX, header-only</td></tr>
-        <tr><td>Математика</td><td><code>math/math3d.h</code></td><td>vec/quat/mat4, frustum</td></tr>
-        <tr><td>Ресурсы</td><td><code>assets/assets.h</code></td><td>Арена, файлы, WAV</td></tr>
-        <tr><td>glTF</td><td><code>assets/gltf.h</code></td><td>Загрузчик glTF 2.0</td></tr>
-        <tr><td>Изображения</td><td><code>assets/texture.h</code></td><td>stb_image → RGBA8</td></tr>
-        <tr><td>Шрифты</td><td><code>assets/font.h</code></td><td>TTF/OTF + CFF → атлас</td></tr>
-        <tr><td>MP3</td><td><code>assets/mp3.h</code></td><td>minimp3 → float PCM</td></tr>
-        <tr><td>Анимация</td><td><code>anim/anim.h</code></td><td>Плеер + скин-палитра</td></tr>
-        <tr><td>Аудио</td><td><code>audio/audio.h</code></td><td>Software-микшер</td></tr>
-        <tr><td>Меши</td><td><code>graphics/mesh.h</code></td><td>GPU-буферы</td></tr>
-        <tr><td>Рендерер</td><td><code>graphics/renderer.h</code></td><td>Forward PBR</td></tr>
-        <tr><td>UI</td><td><code>graphics/ui.h</code></td><td>SDF UI</td></tr>
-        <tr><td>GUI</td><td><code>subjects/2D/gui/*.h</code></td><td>Виджеты</td></tr>
-        <tr><td>Камеры</td><td><code>subjects/2D/Camera.h</code>, <code>subjects/3D/Camera.h</code></td><td>2D-орто и 3D orbit/fps</td></tr>
-        <tr><td>Свет</td><td><code>subjects/3D/light/*.h</code></td><td>Sun, Point, Ambient</td></tr>
-        <tr><td>Модели</td><td><code>subjects/3D/model.h</code></td><td>glTF + анимация + иерархия</td></tr>
-        <tr><td>Физика</td><td><code>physics/physics2d.h</code>, <code>physics/physics3d.h</code></td><td>Rigid body</td></tr>
-        <tr><td>Сцены</td><td><code>scene/scene.h</code></td><td>Менеджер + fade</td></tr>
-        <tr><td>Редактор</td><td><code>editor/editor.h</code></td><td>Редактирование glTF</td></tr>
-      </table>
+<p>
+  Ниже — минимальный, но полноценный каркас: окно, 3D-камера, освещение,
+  загрузка модели с анимацией и простая GUI-надпись. Сохраните как
+  <code>src/main.c</code>.
+</p>
 
-      <h2>Платформы и требования</h2>
-      <ul>
-        <li><strong>Windows</strong>: Win32 + WGL, MinGW или MSVC</li>
-        <li><strong>Linux</strong>: X11 + GLX, GCC/Clang</li>
-        <li><strong>OpenGL</strong>: 3.3+ (core profile)</li>
-        <li><strong>Аудио</strong>: waveOut (Win) / ALSA (Linux) — <em>опционально</em>, без устройства движок работает молча</li>
-      </ul>
+<div class="filename">src/main.c</div>
+<pre><code>#include &lt;sdge.h&gt;
+#include &lt;stdio.h&gt;
 
-      <div class="callout tip">
-        <strong>Один заголовок</strong>
-        Подключите <code>#include "sdge.h"</code> — он включает весь публичный API движка.
-      </div>
-    </section>
+typedef struct {
+    sdge_window *window;
+    int width, height;
+    int running;
 
-    <!-- ======================== INSTALL ======================== -->
-    <section class="page" id="install">
-      <h1>Установка и сборка</h1>
-      <p class="lead">Движок поддерживает три режима: динамическая библиотека, статическая сборка и header-only для отдельных модулей.</p>
+    sdge_camera3d camera;
+    sdge_model *model;
+    sdge_gui *gui;
+    sdge_gui_label fps_label;
 
-      <h2>Режим 1: динамическая библиотека</h2>
-      <p>Соберите движок как <code>sdge.dll</code> (или <code>libsdge.so</code>):</p>
-<pre><code># Движок
-cc -DSDGE_BUILD_DLL -c *.c
-cc -shared -o sdge.dll *.o
+    double last_time;
+} game;
 
-# Приложение
-cc -DSDGE_USE_DLL main.c -L. -lsdge</code></pre>
+static game g;
 
-      <h2>Режим 2: статическая сборка</h2>
-      <p>Скомпилируйте все <code>.c</code> движка вместе с приложением — без <code>SDGE_BUILD_DLL</code> и <code>SDGE_USE_DLL</code>:</p>
-<pre><code>cc main.c engine/*.c -lglfw -lGL -o game</code></pre>
+static void on_key(sdge_window *w, int key, int scancode, int action, int mods) {
+    (void)w; (void)scancode; (void)mods;
+    if (action != SDGE_PRESS) return;
 
-      <h2>Режим 3: header-only модули</h2>
-      <p>Некоторые модули живут прямо в заголовках. Активируйте их реализацию в <em>одном</em> translation unit:</p>
-<pre><code>// engine_impl.c
-#define SDGE_WINDOW_IMPLEMENTATION
-#define SDGE_ASSETS_IMPLEMENTATION
-#define SDGE_GLTF_IMPLEMENTATION
-#include "sdge.h"</code></pre>
+    if (key == SDGE_KEY_ESCAPE) g.running = 0;
 
-      <h2>Флаги компиляции</h2>
-      <table>
-        <tr><th>Флаг</th><th>Назначение</th></tr>
-        <tr><td><code>SDGE_BUILD_DLL</code></td><td>Экспортировать символы (сборка DLL)</td></tr>
-        <tr><td><code>SDGE_USE_DLL</code></td><td>Импортировать символы (использование DLL)</td></tr>
-        <tr><td><code>SDGE_NO_GL</code></td><td>Отключить OpenGL — для headless-тестов. <code>sdgr_*</code>, <code>sdui_*</code>, <code>sdge_mesh_*</code> вернут заглушки</td></tr>
-        <tr><td><code>SDGE_NO_ALSA</code></td><td>Linux без ALSA (silent device)</td></tr>
-      </table>
+    if (g.model &amp;&amp; key &gt;= SDGE_KEY_1 &amp;&amp; key &lt;= SDGE_KEY_9) {
+        int index = key - SDGE_KEY_1;
+        if (index &lt; sdge_model_anim_count(g.model))
+            sdge_model_play(g.model, index, 1);
+    }
+}
 
-      <h2>Зависимости</h2>
-      <table>
-        <tr><th>Модуль</th><th>Внешняя зависимость</th></tr>
-        <tr><td>window</td><td>Win32 / X11 (системные)</td></tr>
-        <tr><td>renderer, ui, mesh</td><td><code>glad</code> (vendored)</td></tr>
-        <tr><td>texture</td><td><code>stb_image</code> (vendored)</td></tr>
-        <tr><td>mp3</td><td><code>minimp3</code> (vendored)</td></tr>
-        <tr><td>audio</td><td><code>winmm</code> / <code>asound</code></td></tr>
-      </table>
-
-      <div class="callout">
-        <strong>Никаких внешних C++ библиотек</strong>
-        Всё, что нужно, уже в репозитории. Из системного — только оконный API и OpenGL.
-      </div>
-    </section>
-
-    <!-- ======================== QUICKSTART ======================== -->
-    <section class="page" id="quickstart">
-      <h1>Быстрый старт</h1>
-      <p class="lead">Полноценный пример: окно, камера, загрузка glTF-модели с анимацией, отрисовка. 60 строк — и всё работает.</p>
-
-<pre><code>#include "sdge.h"
+static void on_resize(sdge_window *w, int width, int height) {
+    (void)w; (void)width; (void)height;
+    sdge_get_framebuffer_size(g.window, &amp;g.width, &amp;g.height);
+    sdge_camera3d_set_aspect(&amp;g.camera,
+        (float)g.width / (float)(g.height ? g.height : 1));
+}
 
 int main(void) {
-    // 1. Окно и контекст
-    sdge_init();
-    sdge_window *w = sdge_create_window(1280, 720, "Hello SDGE", NULL);
-    if (!w) return 1;
-    sdge_make_context_current(w);
+    if (!sdge_init()) {
+        fprintf(stderr, "engine init failed\n");
+        return 1;
+    }
 
-    // 2. Инициализация рендерера и UI
-    sdgr_init();
-    sdui_init();
-    sdge_audio_init();
+    sdge_window_hint(SDGE_VSYNC, 1);
+    sdge_window_hint(SDGE_RESIZABLE, 1);
 
-    // 3. Камера
-    sdge_camera3d cam;
-    sdge_camera3d_init(&cam, 55.0f, 1280.0f/720.0f, 0.1f, 200.0f);
-    sdge_camera3d_orbit(&cam, (float[3]){0,0,0}, 5.0f, 0.6f, 0.35f);
+    g.window = sdge_create_window(1280, 720, "My Game", NULL);
+    if (!g.window) {
+        sdge_terminate();
+        return 1;
+    }
 
-    // 4. Модель и анимация
-    sdge_model *hero = sdge_model_load("assets/hero.glb");
-    if (hero && sdge_model_anim_count(hero) > 0)
-        sdge_model_play(hero, 0, 1);   // animation 0, loop
+    sdge_show_window(g.window);
+    sdge_make_context_current(g.window);
+    sdge_get_framebuffer_size(g.window, &amp;g.width, &amp;g.height);
 
-    // 5. Главный цикл
-    double prev = sdge_get_time();
-    while (!sdge_window_should_close(w)) {
+    sdge_set_key_callback(g.window, on_key);
+    sdge_set_window_size_callback(g.window, on_resize);
+
+    if (sdgr_init() != 0) {
+        fprintf(stderr, "renderer init failed\n");
+        sdge_destroy_window(g.window);
+        sdge_terminate();
+        return 1;
+    }
+    if (sdui_init() != 0) {
+        fprintf(stderr, "UI init failed\n");
+        sdgr_shutdown();
+        sdge_destroy_window(g.window);
+        sdge_terminate();
+        return 1;
+    }
+
+    g.gui = sdge_gui_create();
+    sdge_gui_label_init(&amp;g.fps_label, 16.0f, 16.0f, 260.0f, 24.0f,
+                        "FPS: --", 16.0f,
+                        (float[]){ 1.0f, 1.0f, 1.0f, 1.0f });
+    sdge_gui_add(g.gui, &amp;g.fps_label.base);
+
+    /* модель должна грузиться после создания GL-контекста */
+    g.model = sdge_model_load("assets/character.glb");
+    if (g.model &amp;&amp; sdge_model_anim_count(g.model) &gt; 0)
+        sdge_model_play(g.model, 0, 1);
+
+    sdge_camera3d_init(&amp;g.camera, 50.0f,
+        (float)g.width / (float)(g.height ? g.height : 1), 0.05f, 500.0f);
+    {
+        float center[3] = { 0.0f, 1.0f, 0.0f };
+        sdge_camera3d_orbit(&amp;g.camera, center, 4.0f, 0.6f, 0.25f);
+    }
+
+    const float clear[4]   = { 0.08f, 0.09f, 0.11f, 1.0f };
+    const float sun_dir[3] = { -0.4f, -1.0f, -0.3f };
+    const float sun_col[3] = { 1.0f, 0.95f, 0.88f };
+
+    g.running = 1;
+    g.last_time = sdge_get_time();
+
+    while (g.running &amp;&amp; !sdge_window_should_close(g.window)) {
         sdge_poll_events();
 
         double now = sdge_get_time();
-        float dt = (float)(now - prev);
-        prev = now;
+        float dt = (float)(now - g.last_time);
+        g.last_time = now;
+        if (dt &gt; 0.1f) dt = 0.1f;          /* защита от длинных пауз */
 
-        sdge_camera3d_update(&cam);
-        sdge_model_advance(hero, dt);
+        if (g.model) sdge_model_advance(g.model, dt);
+        sdge_camera3d_update(&amp;g.camera);
 
-        // 3D-проход
-        sdgr_resize(1280, 720);
-        sdgr_begin_frame(NULL);
-        sdgr_set_camera(cam.view, cam.proj, cam.pos);
-        sdgr_set_ambient(0.2f, 0.2f, 0.25f);
-        sdgr_set_sun((float[3]){-0.5f,-1.0f,-0.3f}, (float[3]){1,1,1}, 2.0f);
-        sdge_model_draw(hero, NULL);
+        sdge_get_framebuffer_size(g.window, &amp;g.width, &amp;g.height);
+        sdgr_resize(g.width, g.height);
+        sdgr_begin_frame(clear);
+        sdgr_set_camera(g.camera.view, g.camera.proj, g.camera.pos);
+        sdgr_set_ambient(0.25f, 0.27f, 0.32f);
+        sdgr_set_sun(sun_dir, sun_col, 2.2f);
+        if (g.model) sdge_model_draw(g.model, NULL);
         sdgr_end_frame();
 
-        // UI-проход
-        sdui_begin(1280, 720);
-        sdui_text(20, 20, "Hello, SDGE", 20.0f, (float[4]){1,1,1,1});
-        sdui_end();
+        char fps[64];
+        snprintf(fps, sizeof(fps), "FPS: %.0f",
+                 dt &gt; 0.0f ? 1.0f / dt : 0.0f);
+        sdge_gui_label_set_text(&amp;g.fps_label, fps);
 
-        sdge_swap_buffers(w);
+        sdge_gui_begin(g.gui, g.width, g.height);
+        sdge_gui_draw(g.gui);
+        sdge_gui_end(g.gui);
+
+        sdge_swap_buffers(g.window);
     }
 
-    // 6. Очистка
-    sdge_model_destroy(hero);
+    if (g.model) sdge_model_destroy(g.model);
+    sdge_gui_destroy(g.gui);
     sdui_shutdown();
     sdgr_shutdown();
-    sdge_audio_terminate();
-    sdge_destroy_window(w);
+    sdge_destroy_window(g.window);
     sdge_terminate();
     return 0;
 }</code></pre>
 
-      <h2>Что дальше</h2>
-      <ul>
-        <li>Замените статичную камеру на управление мышью — см. <a href="#camera3d" data-nav="camera3d">Камера 3D</a></li>
-        <li>Добавьте GUI с кнопками — см. <a href="#gui" data-nav="gui">GUI-система</a></li>
-        <li>Заведите физику — см. <a href="#physics3d" data-nav="physics3d">Физика 3D</a></li>
-        <li>Разбейте игру на сцены — см. <a href="#scene" data-nav="scene">Менеджер сцен</a></li>
-      </ul>
+<div class="warn">
+  <span class="label">Порядок инициализации</span>
+  <code>sdge_init()</code> → окно → <code>sdge_make_context_current()</code> →
+  <code>sdgr_init()</code> → <code>sdui_init()</code> → загрузка моделей и
+  текстур. Загрузка модели и загрузка текстуры на GPU требуют текущего
+  GL-контекста.
+</div>
 
-      <div class="callout tip">
-        <strong>Порядок кадра</strong>
-        3D → UI → swap. UI всегда рисуется <em>после</em> 3D, потому что отключает depth test.
-      </div>
-    </section>
+<h3>Компиляция примера</h3>
+<p><b>Windows (MinGW):</b></p>
+<pre><code>gcc -std=c99 -DSDGE_USE_DLL -I API/include src/main.c -o game.exe ^
+    API/lib/windows/release/libsdge.a
+copy API\lib\windows\release\sdge.dll .
+game.exe</code></pre>
 
-    <!-- ======================== WINDOW ======================== -->
-    <section class="page" id="window">
-      <h1>Окно и ввод</h1>
-      <p class="lead">GLFW-подобный слой. Header-only, работает на Windows (Win32/WGL) и Linux (X11/GLX).</p>
+<p><b>Linux:</b></p>
+<pre><code>gcc -std=gnu99 -DSDGE_USE_DLL -I API/include src/main.c -o game \
+    -LAPI/lib/linux/release -lsdge -Wl,-rpath,'$ORIGIN' -lm
+cp API/lib/linux/release/libsdge.so .
+./game</code></pre>
 
-      <h2>Жизненный цикл</h2>
-      <div class="api">
-        <div class="sig"><span class="type">bool</span> <span class="name">sdge_init</span>(<span class="arg">void</span>);</div>
-        <div class="sig"><span class="type">void</span> <span class="name">sdge_terminate</span>(<span class="arg">void</span>);</div>
-        <div class="desc">Инициализация и завершение — идемпотентны. <code>sdge_terminate</code> закрывает все окна.</div>
-      </div>
+<div class="note">
+  <span class="label">Рабочая директория</span>
+  Пути в <code>sdge_model_load("assets/character.glb")</code> относительны
+  <b>текущей рабочей директории</b>, а не расположения exe. При запуске из
+  IDE проверьте working directory; для надёжности можно собирать абсолютный
+  путь или запускать игру из корня проекта.
+</div>
 
-      <h2>Создание окна</h2>
-      <div class="api">
-        <div class="sig"><span class="type">sdge_window*</span> <span class="name">sdge_create_window</span>(<span class="arg">int w, int h, const char *title, sdge_window *share</span>);</div>
-        <div class="sig"><span class="type">void</span> <span class="name">sdge_destroy_window</span>(<span class="arg">sdge_window *w</span>);</div>
-        <div class="desc">Создаёт окно с OpenGL-контекстом. <code>share</code> — другое окно, с которым разделяются GL-ресурсы (или <code>NULL</code>).</div>
-      </div>
+<!-- ================================================================ LOOP -->
+<h2 id="loop">Главный цикл и время <a class="anchor" href="#loop">#</a></h2>
 
-      <h3>Управление окном</h3>
-      <ul>
-        <li><code>sdge_show_window / sdge_hide_window</code></li>
-        <li><code>sdge_set_window_title</code></li>
-        <li><code>sdge_set_window_size / sdge_get_window_size</code> — клиентская область</li>
-        <li><code>sdge_get_framebuffer_size</code> — backbuffer (учитывает HiDPI)</li>
-        <li><code>sdge_set_fullscreen / sdge_is_fullscreen</code></li>
-        <li><code>sdge_swap_buffers</code> — после конца кадра</li>
-        <li><code>sdge_swap_interval(1)</code> — включить vsync</li>
-      </ul>
+<p>Кадр всегда состоит из одних и тех же шагов:</p>
 
-      <h3>Хинты</h3>
-      <p>Вызывайте до <code>sdge_create_window</code>:</p>
-<pre><code>sdge_default_window_hints();
-sdge_window_hint(SDGE_CONTEXT_VERSION_MAJOR, 3);
-sdge_window_hint(SDGE_CONTEXT_VERSION_MINOR, 3);
-sdge_window_hint(SDGE_OPENGL_PROFILE, 1);   // 1 = core</code></pre>
+<ol>
+  <li><code>sdge_poll_events()</code> — забрать события ОС (ввод, ресайз, закрытие).</li>
+  <li>Посчитать <code>dt</code> по <code>sdge_get_time()</code> и ограничить его (например, <code>0.1f</code>).</li>
+  <li>Обновить игровую логику: анимации, физику, управление.</li>
+  <li><code>sdge_camera3d_update()</code> — пересчитать view/proj/frustum.</li>
+  <li><code>sdgr_resize()</code> → <code>sdgr_begin_frame()</code> → камера/свет → рисование → <code>sdgr_end_frame()</code>.</li>
+  <li>GUI: <code>sdge_gui_begin()</code> → <code>sdge_gui_draw()</code> → <code>sdge_gui_end()</code>.</li>
+  <li><code>sdge_swap_buffers()</code> — показать кадр.</li>
+</ol>
 
-      <h2>События</h2>
-<pre><code>while (!sdge_window_should_close(w)) {
-    sdge_poll_events();
-    // ... update & render
+<h3>Стабильный шаг физики</h3>
+<p>
+  Физику лучше обновлять фиксированными шагами, иначе поведение зависит от
+  FPS. Простой аккумулятор:
+</p>
+<pre><code>const float STEP = 1.0f / 60.0f;
+float accumulator = 0.0f;
+
+/* в каждом кадре: */
+accumulator += dt;
+if (accumulator &gt; 0.25f) accumulator = 0.25f;   /* не копим бесконечно */
+while (accumulator &gt;= STEP) {
+    sdph3_step(world, STEP);
+    accumulator -= STEP;
 }</code></pre>
 
-      <h3>Колбэки</h3>
-<pre><code>void on_key(sdge_window *w, int key, int sc, int action, int mods) {
-    if (key == SDGE_KEY_ESCAPE &amp;&amp; action == SDGE_PRESS)
-        sdge_set_window_should_close(w, true);
+<div class="tip">
+  <span class="label">Совет</span>
+  Для интерполяции рендера между шагами физики храните предыдущую и текущую
+  трансформации тела и смешивайте их с <code>accumulator / STEP</code>.
+</div>
+
+<h3>Владение ресурсами</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Объект</th><th>Создание</th><th>Освобождение</th></tr></thead>
+  <tbody>
+    <tr><td>Движок</td><td><code>sdge_init()</code></td><td><code>sdge_terminate()</code></td></tr>
+    <tr><td>Окно</td><td><code>sdge_create_window()</code></td><td><code>sdge_destroy_window()</code></td></tr>
+    <tr><td>Рендерер</td><td><code>sdgr_init()</code></td><td><code>sdgr_shutdown()</code></td></tr>
+    <tr><td>UI-рендер</td><td><code>sdui_init()</code></td><td><code>sdui_shutdown()</code></td></tr>
+    <tr><td>Модель</td><td><code>sdge_model_load()</code></td><td><code>sdge_model_destroy()</code></td></tr>
+    <tr><td>GUI</td><td><code>sdge_gui_create()</code></td><td><code>sdge_gui_destroy()</code></td></tr>
+    <tr><td>Текстура</td><td><code>sdgr_upload_texture()</code></td><td><code>sdgr_free_texture()</code></td></tr>
+    <tr><td>Звуковой буфер</td><td><code>sdge_audio_load_file()</code></td><td><code>sdge_audio_free_buffer()</code></td></tr>
+    <tr><td>Источник звука</td><td><code>sdge_audio_source_create()</code></td><td><code>sdge_audio_source_destroy()</code></td></tr>
+    <tr><td>Физический мир</td><td><code>sdph3_world_create()</code></td><td><code>sdph3_world_destroy()</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ============================================================== WINDOW -->
+<h2 id="window">Окно и ввод <a class="anchor" href="#window">#</a></h2>
+
+<h3>Подсказки перед созданием окна</h3>
+<pre><code>sdge_window_hint(SDGE_RESIZABLE, 1);      /* окно можно растягивать */
+sdge_window_hint(SDGE_VSYNC, 1);          /* вертикальная синхронизация */
+sdge_window_hint(SDGE_OPENGL_PROFILE, 1); /* 1 = core, 2 = compatibility */</code></pre>
+
+<p>Значения по умолчанию: resizable = 1, VSync = 1, OpenGL core profile.</p>
+
+<h3>Создание и управление</h3>
+<pre><code>sdge_window *w = sdge_create_window(1280, 720, "My Game", NULL); /* NULL = не делить контекст */
+sdge_show_window(w);
+sdge_make_context_current(w);
+
+sdge_set_window_title(w, "Level 1");
+sdge_set_window_size(w, 1600, 900);        /* клиентская область */
+sdge_get_window_size(w, &amp;win_w, &amp;win_h);
+sdge_get_framebuffer_size(w, &amp;fb_w, &amp;fb_h); /* HiDPI: может отличаться */
+
+sdge_swap_buffers(w);
+sdge_set_window_should_close(w, 1);
+
+sdge_destroy_window(w);</code></pre>
+
+<div class="note">
+  <span class="label">HiDPI</span>
+  Для рендера и GUI используйте <b>framebuffer size</b>, а для координат
+  мыши — оконные координаты. На обычном Windows-мониторе они совпадают.
+</div>
+
+<h3>События</h3>
+<pre><code>static void on_key(sdge_window *w, int key, int scancode,
+                   int action, int mods) {
+    if (action == SDGE_PRESS) {
+        /* нажатие */
+    } else if (action == SDGE_RELEASE) {
+        /* отпускание */
+    } else if (action == SDGE_REPEAT) {
+        /* автоповтор */
+    }
 }
 
-sdge_set_key_callback(w, on_key);</code></pre>
+static void on_char(sdge_window *w, unsigned codepoint);
+static void on_mouse_button(sdge_window *w, int button, int action, int mods);
+static void on_cursor(sdge_window *w, double x, double y);
+static void on_scroll(sdge_window *w, double dx, double dy);
+static void on_resize(sdge_window *w, int width, int height);
+static void on_close(sdge_window *w);
+static void on_focus(sdge_window *w, int focused);
+static void on_error(int code, const char *description);
 
-      <table>
-        <tr><th>Колбэк</th><th>Установщик</th></tr>
-        <tr><td><code>sdge_key_fn</code></td><td><code>sdge_set_key_callback</code></td></tr>
-        <tr><td><code>sdge_char_fn</code></td><td><code>sdge_set_char_callback</code></td></tr>
-        <tr><td><code>sdge_mouse_button_fn</code></td><td><code>sdge_set_mouse_button_callback</code></td></tr>
-        <tr><td><code>sdge_cursor_pos_fn</code></td><td><code>sdge_set_cursor_pos_callback</code></td></tr>
-        <tr><td><code>sdge_scroll_fn</code></td><td><code>sdge_set_scroll_callback</code></td></tr>
-        <tr><td><code>sdge_window_size_fn</code></td><td><code>sdge_set_window_size_callback</code></td></tr>
-        <tr><td><code>sdge_focus_fn</code></td><td><code>sdge_set_focus_callback</code></td></tr>
-        <tr><td><code>sdge_error_fn</code></td><td><code>sdge_set_error_callback</code></td></tr>
-      </table>
+sdge_set_key_callback(w, on_key);
+sdge_set_char_callback(w, on_char);
+sdge_set_mouse_button_callback(w, on_mouse_button);
+sdge_set_cursor_pos_callback(w, on_cursor);
+sdge_set_scroll_callback(w, on_scroll);
+sdge_set_window_size_callback(w, on_resize);
+sdge_set_window_close_callback(w, on_close);
+sdge_set_focus_callback(w, on_focus);
+sdge_set_error_callback(on_error);</code></pre>
 
-      <h3>Опрос состояния ввода</h3>
-<pre><code>if (sdge_get_key(w, SDGE_KEY_W))
-    camera.pos.z += speed * dt;
+<p>Константы действий: <code>SDGE_PRESS = 1</code>, <code>SDGE_RELEASE = 0</code>, <code>SDGE_REPEAT = 2</code>.</p>
 
+<h3>Клавиши и мышь</h3>
+<p>
+  Клавиши — это GLFW-подобные коды: <code>SDGE_KEY_A…SDGE_KEY_Z</code>,
+  <code>SDGE_KEY_0…SDGE_KEY_9</code>, <code>SDGE_KEY_ESCAPE</code>,
+  <code>SDGE_KEY_ENTER</code>, <code>SDGE_KEY_TAB</code>,
+  <code>SDGE_KEY_BACKSPACE</code>, стрелки, <code>SDGE_KEY_F1…F12</code>,
+  модификаторы <code>SDGE_KEY_LEFT_SHIFT</code> и т.д.
+</p>
+<p>
+  Кнопки мыши: <code>SDGE_MOUSE_BUTTON_LEFT</code> (0),
+  <code>SDGE_MOUSE_BUTTON_RIGHT</code> (1),
+  <code>SDGE_MOUSE_BUTTON_MIDDLE</code> (2).
+</p>
+
+<h4>Polling вместо callback</h4>
+<pre><code>sdge_poll_events();
+
+if (sdge_get_key(w, SDGE_KEY_W))
+    player_speed = 5.0f;          /* клавиша удерживается */
+
+double x, y;
+sdge_get_cursor_pos(w, &amp;x, &amp;y);
 if (sdge_get_mouse_button(w, SDGE_MOUSE_BUTTON_LEFT))
-    shoot();
+    shoot((float)x, (float)y);</code></pre>
 
-double mx, my;
-sdge_get_cursor_pos(w, &amp;mx, &amp;my);</code></pre>
+<h3>Время</h3>
+<table>
+  <thead><tr><th>Функция</th><th>Назначение</th></tr></thead>
+  <tbody>
+    <tr><td><code>sdge_get_time()</code></td><td>Секунды с запуска (double) — для <code>dt</code>.</td></tr>
+    <tr><td><code>sdge_get_time_ms(int64_t *ms)</code></td><td>Миллисекунды.</td></tr>
+    <tr><td><code>sdge_get_timer_value()</code></td><td>Аппаратный счётчик высокого разрешения.</td></tr>
+    <tr><td><code>sdge_get_timer_frequency()</code></td><td>Частота счётчика (для перевода в секунды).</td></tr>
+  </tbody>
+</table>
 
-      <h2>Таймеры</h2>
-      <div class="api">
-        <div class="sig"><span class="type">double</span> <span class="name">sdge_get_time</span>(<span class="arg">void</span>);</div>
-        <div class="desc">Секунды с первого вызова. Основано на QPC (Win) / CLOCK_MONOTONIC (Linux).</div>
-      </div>
-<pre><code>double prev = sdge_get_time();
-while (running) {
-    double now = sdge_get_time();
-    float dt = (float)(now - prev);
-    prev = now;
-    // использовать dt
-}</code></pre>
+<!-- ============================================================ RENDERER -->
+<h2 id="renderer">Рендерер <a class="anchor" href="#renderer">#</a></h2>
 
-      <div class="callout">
-        <strong>Клавиши</strong>
-        Полный список — <code>SDGE_KEY_*</code>: буквы, цифры, F1-F12, стрелки, модификаторы. Совместимо со значениями GLFW.
-      </div>
-    </section>
+<p>
+  Рендерер держит всё состояние OpenGL внутри себя: игра не подключает
+  <code>glad</code> и не вызывает <code>gl*</code>. Один шейдер рисует и
+  скинированные, и статические меши.
+</p>
 
-    <!-- ======================== MATH ======================== -->
-    <section class="page" id="math">
-      <h1>Математика</h1>
-      <p class="lead">Header-only <code>math3d.h</code>: column-major mat4, right-handed, −Z forward, +Y up. Всё, что нужно для 3D.</p>
+<h3>Инициализация и кадр</h3>
+<pre><code>if (sdgr_init() != 0) { /* ошибка */ }
 
-      <h2>Типы</h2>
-      <table>
-        <tr><th>Тип</th><th>Формат</th></tr>
-        <tr><td><code>sdg_vec3</code></td><td><code>float[3]</code></td></tr>
-        <tr><td><code>sdg_vec4</code></td><td><code>float[4]</code></td></tr>
-        <tr><td><code>sdg_quat</code></td><td><code>float[4]</code> — (x, y, z, w), w = cos(θ/2)</td></tr>
-        <tr><td><code>sdg_mat4</code></td><td><code>float[16]</code>, column-major: index = col*4 + row</td></tr>
-      </table>
+sdgr_resize(fb_width, fb_height);           /* каждый кадр или при ресайзе */
+sdgr_begin_frame(clear_color);              /* очистка и viewport */
+sdgr_set_camera(cam.view, cam.proj, cam.pos);
+sdgr_set_ambient(0.25f, 0.27f, 0.32f);
+/* ... рисование ... */
+sdgr_end_frame();
 
-      <h2>vec3</h2>
-<pre><code>sdg_vec3 a = {1, 2, 3}, b = {4, 5, 6}, r;
+sdgr_shutdown();</code></pre>
 
-v3_add(r, a, b);          // r = a + b
-v3_sub(r, a, b);          // r = a - b
-v3_mul(r, a, 2.0f);       // r = a * 2
-v3_cross(r, a, b);        // r = a × b
-float d = v3_dot(a, b);
-float l = v3_norm(r, a);  // r = normalize(a), возвращает длину
-v3_lerp(r, a, b, 0.5f);</code></pre>
+<p><code>clear_color</code> — массив <code>float[4]</code> (RGBA).</p>
 
-      <h2>Кватернионы</h2>
-<pre><code>sdg_quat q;
-q_from_axis_angle(q, (float[3]){0,1,0}, SDG_PI * 0.5f);
+<h3>Камера и отсечение</h3>
+<pre><code>sdgr_set_camera(cam.view, cam.proj, cam.pos);
+int visible = sdgr_sphere_visible(center, radius);
+float eye[3];
+sdgr_get_camera_pos(eye);</code></pre>
+<p>
+  <code>sdgr_set_camera()</code> вычисляет фрустум; модель и меши используют
+  его для отсечения по bounding sphere автоматически.
+</p>
 
-sdg_quat q2;
-q_mul(q2, q, q);          // q2 = q * q
-q_slerp(q2, q, q_identity, 0.5f);
+<h3>Свет</h3>
+<pre><code>sdgr_set_ambient(r, g, b);
 
-sdg_vec3 rotated;
-q_rot_vec3(rotated, q, (float[3]){1,0,0});
+float dir[3]   = { -0.4f, -1.0f, -0.3f };   /* куда светит */
+float color[3] = { 1.0f, 0.96f, 0.90f };
+sdgr_set_sun(dir, color, 2.4f);
 
-sdg_mat4 m;
-q_to_mat4(m, q);</code></pre>
+float pos[3]   = { 2.5f, 2.0f, 2.5f };
+float warm[3]  = { 1.0f, 0.8f, 0.6f };
+sdgr_set_point_light(0, pos, warm, 1.5f, 12.0f); /* слот 0..7, intensity, radius */</code></pre>
 
-      <h2>Матрицы</h2>
-      <table>
-        <tr><th>Функция</th><th>Смысл</th></tr>
-        <tr><td><code>m4_identity(o)</code></td><td>Единичная</td></tr>
-        <tr><td><code>m4_mul(o, a, b)</code></td><td>o = a·b (сначала b, потом a)</td></tr>
-        <tr><td><code>m4_translation / m4_scaling</code></td><td>T / S</td></tr>
-        <tr><td><code>m4_from_trs(o, t, q, s)</code></td><td>T·R·S — локальная трансформация ноды glTF</td></tr>
-        <tr><td><code>m4_perspective / m4_ortho</code></td><td>Проекции</td></tr>
-        <tr><td><code>m4_look_at(o, eye, at, up)</code></td><td>View-матрица</td></tr>
-        <tr><td><code>m4_invert(o, m)</code></td><td>General inverse</td></tr>
-        <tr><td><code>m4_invert_rigid(o, m)</code></td><td>Быстрый inverse для rigid-transform</td></tr>
-        <tr><td><code>m4_mul_point(o, m, p)</code></td><td>Трансформация точки (w=1)</td></tr>
-        <tr><td><code>m4_mul_vec3_dir(o, m, v)</code></td><td>Верхняя 3×3 — для нормалей</td></tr>
-      </table>
+<div class="warn">
+  <span class="label">Лимит</span>
+  Максимум <b>8</b> точечных источников (<code>SDGR_MAX_POINT_LIGHTS</code>)
+  и один направленный «sun». Ambient задаётся отдельно.
+</div>
 
-      <h2>Frustum culling</h2>
-<pre><code>sdg_mat4 vp;
-m4_mul(vp, proj, view);
+<h3>Рисование меша</h3>
+<pre><code>const float base_color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-float planes[6][4];
-frustum_from_vp(planes, vp);
+/* простая версия: один цвет + одна текстура */
+sdgr_draw_mesh(&amp;mesh, model_matrix, NULL, 0,
+               base_color, 0.0f, 0.5f, 0 /*double_sided*/,
+               0 /*texture*/);
 
-if (sphere_in_frustum(planes, center, radius)) {
-    // видима
-}</code></pre>
+/* полный материал: 5 текстурных слотов, normal map, alpha mode */
+sdgr_material mat = {0};
+mat.base_color[0] = mat.base_color[1] = mat.base_color[2] = mat.base_color[3] = 1.0f;
+mat.metallic  = 0.0f;
+mat.roughness = 0.6f;
+mat.alpha_mode = SDGR_ALPHA_OPAQUE;
 
-      <p>Плоскости идут в порядке L, R, B, T, N, F; нормали смотрят <strong>внутрь</strong> фрустума.</p>
-    </section>
+sdgr_texture_set tex = {0};
+tex.base_color = base_tex;         /* GL-имя из sdgr_upload_texture() */
+tex.normal     = normal_tex;
+sdgr_draw_mesh_ex(&amp;mesh, model_matrix, NULL, 0, &amp;mat, &amp;tex);</code></pre>
 
-    <!-- ======================== GLTF ======================== -->
-    <section class="page" id="gltf">
-      <h1>glTF-модели</h1>
-      <p class="lead">Загрузчик <code>.glb</code> и <code>.gltf + .bin</code>. Всё в одной арене, доступ к данным — zero-copy.</p>
+<p>
+  <code>joints</code> — палитра скина (массив <code>mat4</code>), либо
+  <code>NULL, 0</code> для статического меша. Для скинированной модели
+  обычно используется <code>sdge_model_draw()</code>, а не ручной вызов.
+</p>
 
-      <h2>Загрузка</h2>
-<pre><code>sdge_gltf_model *m = sdge_load_gltf("assets/character.glb");
-if (!m) return 1;
+<h3>Слоты текстур</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Константа</th><th>Слот</th><th>Цветовое пространство</th></tr></thead>
+  <tbody>
+    <tr><td><code>SDGR_SLOT_BASE</code></td><td>base color</td><td>sRGB</td></tr>
+    <tr><td><code>SDGR_SLOT_MR</code></td><td>metallic-roughness</td><td>linear</td></tr>
+    <tr><td><code>SDGR_SLOT_NORMAL</code></td><td>normal</td><td>linear</td></tr>
+    <tr><td><code>SDGR_SLOT_OCCLUSION</code></td><td>ambient occlusion</td><td>linear</td></tr>
+    <tr><td><code>SDGR_SLOT_EMISSIVE</code></td><td>emissive</td><td>sRGB</td></tr>
+  </tbody>
+</table>
+</div>
 
-// ... использовать ...
-
-sdge_gltf_destroy(m);   // освобождает всю модель одним вызовом</code></pre>
-
-      <h2>Структура модели</h2>
-<pre><code>typedef struct {
-    sdge_gltf_node *nodes;      int node_count;
-    int *roots;                 int root_count;
-    sdge_gltf_mesh *meshes;     int mesh_count;
-    sdge_gltf_skin *skins;      int skin_count;
-    sdge_gltf_animation *anims; int anim_count;
-    sdge_gltf_material *materials; int material_count;
-    // ...текстуры, сэмплеры, bufferViews
-    sdga_arena arena;           // владеет всей памятью
-} sdge_gltf_model;</code></pre>
-
-      <h2>Узлы (nodes)</h2>
-<pre><code>for (int i = 0; i &lt; m-&gt;node_count; ++i) {
-    const sdge_gltf_node *n = &amp;m-&gt;nodes[i];
-    if (n-&gt;mesh &gt;= 0) {
-        // у ноды есть меш
-        printf("node %s → mesh %d\n", n-&gt;name, n-&gt;mesh);
-    }
-}</code></pre>
-
-      <h2>Материалы</h2>
-<pre><code>const sdge_gltf_material *mat = &amp;m-&gt;materials[0];
-
-mat-&gt;base_color[0..3]      // RGBA
-mat-&gt;metallic              // 0..1
-mat-&gt;roughness             // 0..1
-mat-&gt;emissive[0..2]
-mat-&gt;alpha_mode            // SDGE_ALPHA_OPAQUE / MASK / BLEND
-mat-&gt;double_sided
-
-// Ссылки на текстуры
-mat-&gt;base_color_tex.index  // index into m-&gt;textures, -1 = нет
-mat-&gt;normal_tex.index</code></pre>
-
-      <h2>Accessor'ы</h2>
-      <p>Данные вершин — прямая ссылка в бинарный чанк:</p>
-<pre><code>const sdge_accessor *a = &amp;prim-&gt;positions;
-const unsigned char *ptr = a-&gt;data;
-int count   = a-&gt;count;
-int comps   = a-&gt;comps;       // 3 для POSITION
-int stride  = a-&gt;stride;
-int ctype   = a-&gt;ctype;       // SDGE_GLTF_FLOAT и т.д.</code></pre>
-
-      <div class="callout tip">
-        <strong>Zero-copy</strong>
-        Обычно вам не нужно читать данные вручную — используйте <code>sdge_model_load</code> (см. <a href="#model" data-nav="model">Модели</a>), который загружает всё на GPU автоматически.
-      </div>
-
-      <h2>Что поддерживается</h2>
-      <table>
-        <tr><th>Да</th><th>Нет (v1)</th></tr>
-        <tr><td>Узлы, TRS + matrix</td><td>Morph targets</td></tr>
-        <tr><td>Меши, скины, IBM</td><td>Sparse accessors</td></tr>
-        <tr><td>Анимации LINEAR/STEP/CUBICSPLINE</td><td>Draco</td></tr>
-        <tr><td>PBR-материалы, все 5 текстурных слотов</td><td>KHR_materials_* (кроме transform)</td></tr>
-        <tr><td>KHR_texture_transform</td><td></td></tr>
-        <tr><td>TEXCOORD_0/1, TANGENT, COLOR_0</td><td></td></tr>
-      </table>
-    </section>
-
-    <!-- ======================== TEXTURE ======================== -->
-    <section class="page" id="texture">
-      <h1>Изображения</h1>
-      <p class="lead">CPU-декодер на базе stb_image: PNG, JPG, TGA, BMP, HDR → RGBA8.</p>
-
-      <h2>Загрузка</h2>
+<h3>Загрузка текстуры на GPU</h3>
 <pre><code>sdga_image img;
 if (sdga_image_load_rgba("assets/wood.png", &amp;img) == 0) {
-    // img.pixels — RGBA8, img.w * img.h * 4 байт
-    // top row first
+    unsigned tex = sdgr_upload_texture(img.w, img.h, img.pixels);
     sdga_image_free(&amp;img);
-}</code></pre>
+}
 
-      <h3>Варианты загрузки</h3>
-      <table>
-        <tr><th>Функция</th><th>Особенность</th></tr>
-        <tr><td><code>sdga_image_load</code></td><td>Нативный канал-каунт (RGB / RGBA / grayscale)</td></tr>
-        <tr><td><code>sdga_image_load_rgba</code></td><td>Принудительно RGBA (RGB → alpha=255)</td></tr>
-        <tr><td><code>sdga_image_load_rgba_mem</code></td><td>Из памяти (для data-URI или bufferView)</td></tr>
-      </table>
-
-      <h2>Загрузка на GPU</h2>
-      <p>Загружает текстуру в OpenGL и возвращает GL name. Вызывающий владеет результатом:</p>
-<pre><code>unsigned tex = sdgr_upload_texture(img.w, img.h, img.pixels);
-
-// Полный контроль:
+/* с явными параметрами */
 sdgr_texture_desc desc = {0};
-desc.srgb       = 1;                          // sRGB для color maps
+desc.srgb       = 1;
 desc.wrap_s     = SDGR_REPEAT;
 desc.wrap_t     = SDGR_REPEAT;
 desc.min_filter = SDGR_LINEAR_MIPMAP_LINEAR;
 desc.mag_filter = SDGR_LINEAR;
 desc.mipmaps    = 1;
+unsigned tex = sdgr_upload_texture_ex(img.w, img.h, img.pixels, &amp;desc);
 
-unsigned tex = sdgr_upload_texture_ex(img.w, img.h, img.pixels, &amp;desc);</code></pre>
+sdgr_free_texture(tex);</code></pre>
 
-      <h3>sRGB vs linear</h3>
-      <table>
-        <tr><th>Слот</th><th>Загрузка</th></tr>
-        <tr><td>Base color</td><td>sRGB (<code>desc.srgb = 1</code>)</td></tr>
-        <tr><td>Emissive</td><td>sRGB</td></tr>
-        <tr><td>Metallic-Roughness</td><td>Linear</td></tr>
-        <tr><td>Normal</td><td>Linear</td></tr>
-        <tr><td>Occlusion</td><td>Linear</td></tr>
-      </table>
+<h3>Отладочные линии и скриншот</h3>
+<pre><code>float box_edges[] = { /* xyz-пары: начало, конец, ... */ };
+sdgr_draw_lines(box_edges, 6, color);        /* с тестом глубины */
+sdgr_draw_lines_always(box_edges, 6, color); /* поверх геометрии */
 
-      <div class="callout">
-        <strong>Освобождение</strong>
-        <code>sdgr_free_texture(tex)</code> — когда текстура больше не нужна.
-      </div>
-    </section>
+float center[3] = { 0, 1, 0 };
+float half[3]   = { 0.5f, 0.5f, 0.5f };
+sdgr_draw_box_wire(center, half, NULL, color);
 
-    <!-- ======================== FONT ======================== -->
-    <section class="page" id="font">
-      <h1>Шрифты</h1>
-      <p class="lead">Загрузчик TTF и OTF (CFF) с растеризатором в атлас. Плюс встроенный 5×7 без файла.</p>
+sdgr_screenshot("shot.ppm");</code></pre>
 
-      <h2>Загрузка TTF/OTF</h2>
-<pre><code>sdga_font *f = sdga_load_font("assets/Inter.ttf", 18.0f);
-if (!f) return 1;
-
-sdui_set_font(f);   // подключить к UI-рендереру
-
-// ... использовать ...
-
-sdui_set_font(NULL);   // вернуть встроенный
-sdga_free_font(f);</code></pre>
-
-      <h2>Встроенный шрифт</h2>
-<pre><code>sdga_font *builtin = sdga_load_builtin_font(14.0f);
-sdui_set_font(builtin);</code></pre>
-
-      <h2>Множественные размеры (faces)</h2>
-      <p>Один шрифт может содержать несколько растеризаций под разные размеры. Все глифы живут в одном атласе — UI остаётся в одном draw call.</p>
-<pre><code>sdga_font_add_face(f, 14.0f);
-sdga_font_add_face(f, 20.0f);
-sdga_font_add_face(f, 32.0f);
-
-// UI автоматически выберет ближайший:
-sdui_text(x, y, "Title", 28.0f, color);  // возьмёт face 32</code></pre>
-
-      <h2>Метрики</h2>
-<pre><code>float asc  = sdga_font_ascent(f);        // над baseline
-float desc = sdga_font_descent(f);       // под baseline (положительное)
-float lh   = sdga_font_line_height(f);   // полная высота строки
-
-float w = sdui_text_width("Hello", 18.0f);
-float h = sdui_text_height(18.0f);</code></pre>
-
-      <h2>Доступ к глифам</h2>
-<pre><code>int gid = sdga_font_glyph_index(f, 'A');
-const sdga_glyph *g = sdga_font_face_glyph(f, 0, 'A');
-
-g-&gt;w, g-&gt;h;               // размер bitmap
-g-&gt;bearing_x, g-&gt;bearing_y;
-g-&gt;advance;
-g-&gt;u0, g-&gt;v0, g-&gt;u1, g-&gt;v1;   // UV в атласе</code></pre>
-
-      <div class="callout tip">
-        <strong>Не нужно растеризовать самому</strong>
-        Обычно достаточно <code>sdga_load_font</code> + <code>sdui_set_font</code>. UI-рендерер сам подбирает face и рисует глифы.
-      </div>
-    </section>
-
-    <!-- ======================== AUDIOCLIP ======================== -->
-    <section class="page" id="audioclip">
-      <h1>Аудио-файлы</h1>
-      <p class="lead">Декодеры WAV и MP3 → interleaved float32 [-1, 1]. Это <em>файлы</em> — для проигрывания см. <a href="#audio" data-nav="audio">Spatial-аудио</a>.</p>
-
-      <h2>WAV</h2>
-<pre><code>sdga_wav wav;
-if (sdga_load_wav("sound.wav", &amp;wav) == 0) {
-    // wav.channels    — 1 или 2
-    // wav.sample_rate — Гц
-    // wav.frame_count — фреймов (= samples / channels)
-    // wav.samples     — interleaved float*
-    sdga_free_wav(&amp;wav);
-}</code></pre>
-
-      <p>Поддержка: PCM u8/s16/s24/s32, IEEE float32, WAVE_FORMAT_EXTENSIBLE, mono/stereo.</p>
-
-      <h2>MP3</h2>
-<pre><code>sdga_mp3 mp3;
-if (sdga_load_mp3("music.mp3", &amp;mp3) == 0) {
-    // mp3.channels, mp3.sample_rate, mp3.frame_count, mp3.samples
-    sdga_free_mp3(&amp;mp3);
-}</code></pre>
-
-      <p>MPEG 1/2/2.5 Layer III. Формат результата — тот же, что у WAV.</p>
-
-      <h2>Универсальная загрузка</h2>
-      <p>Для звуковой подсистемы движка:</p>
-<pre><code>sdge_audio_buffer *buf = sdge_audio_load_file("sound.mp3");
-// сам выберет декодер по расширению
-// и ресемплирует в 48 kHz при загрузке</code></pre>
-    </section>
-
-    <!-- ======================== RENDERER ======================== -->
-    <section class="page" id="renderer">
-      <h1>Рендерер</h1>
-      <p class="lead">Forward PBR-lite, OpenGL 3.3+. Один шейдер для всего 3D: ambient + sun + до 8 point lights, скиннинг, нормал-маппинг.</p>
-
-      <h2>Инициализация</h2>
-<pre><code>sdgr_init();                // после make_context_current
-sdgr_resize(w, h);          // при изменении размера
-// ...
-sdgr_shutdown();</code></pre>
-
-      <h2>Кадр</h2>
-<pre><code>sdgr_begin_frame((float[4]){0.09f, 0.10f, 0.14f, 1.0f});
-// ... draw calls
-sdgr_end_frame();</code></pre>
-
-      <h2>Камера</h2>
-<pre><code>sdgr_set_camera(cam.view, cam.proj, cam.pos);
-
-// Проверка видимости сферы (frustum culling)
-if (sdgr_sphere_visible(center, radius))
-    draw_mesh(...);
-
-float cam_pos[3];
-sdgr_get_camera_pos(cam_pos);</code></pre>
-
-      <h2>Освещение</h2>
-<pre><code>sdgr_set_ambient(0.2f, 0.2f, 0.25f);
-sdgr_set_sun((float[3]){-0.5f,-1.0f,-0.3f}, (float[3]){1,1,1}, 2.0f);
-
-sdgr_set_point_light(0,
-    (float[3]){2, 3, 0},
-    (float[3]){1, 0.8f, 0.6f},
-    1.5f,       // intensity
-    10.0f);     // radius</code></pre>
-
-      <p>До <code>SDGR_MAX_POINT_LIGHTS</code> (8) источников. Если задать индекс больше текущего максимума, счётчик увеличится.</p>
-
-      <h2>Отрисовка меша</h2>
-      <p><strong>Простая версия</strong> — только base color и один источник света:</p>
-<pre><code>sdgr_draw_mesh(&amp;mesh, model_matrix,
-               NULL, 0,               // joints, joint_count (NULL для статики)
-               (float[4]){0.8f, 0.8f, 0.8f, 1.0f},
-               0.0f, 0.6f,            // metallic, roughness
-               0,                     // double_sided
-               0);                    // base_texture (0 = без текстуры)</code></pre>
-
-      <p><strong>Полная версия</strong> — все 5 слотов, normal map, alpha mode:</p>
-<pre><code>sdgr_material mat = {0};
-mat.base_color[0..3] = ...;
-mat.metallic         = 0.2f;
-mat.roughness        = 0.6f;
-mat.alpha_mode       = SDGR_ALPHA_OPAQUE;
-mat.normal_scale     = 1.0f;
-// uv_set / uv_offset / uv_scale / uv_rot для каждой текстуры
-
-sdgr_texture_set tex = {
-    .base_color          = base_tex,
-    .metallic_roughness  = mr_tex,
-    .normal              = nrm_tex,
-    .occlusion           = ao_tex,
-    .emissive            = em_tex,
-};
-
-sdgr_draw_mesh_ex(&amp;mesh, model_matrix, joints, joint_count, &amp;mat, &amp;tex);</code></pre>
-
-      <h2>Скиннинг</h2>
-<pre><code>const float *joints =
-    sdge_anim_player_skin_palette(player, &amp;gltf-&gt;skins[skin_idx]);
-int joint_count = gltf-&gt;skins[skin_idx].joint_count;
-
-sdgr_draw_mesh_ex(&amp;mesh, model_matrix, joints, joint_count, &amp;mat, &amp;tex);</code></pre>
-
-      <h2>Линии для отладки</h2>
-<pre><code>float grid[] = {
-    -10, 0, 0,   10, 0, 0,
-    0, 0, -10,   0, 0, 10,
-};
-sdgr_draw_lines(grid, 4, (float[4]){0.3f, 0.3f, 0.3f, 1.0f});
-
-// Сквозь геометрию
-sdgr_draw_lines_always(verts, n, color);
-
-// Габаритный ящик
-sdgr_draw_box_wire(center, half_extents, NULL, color);</code></pre>
-
-      <h2>Скриншот</h2>
-<pre><code>sdgr_screenshot("frame.ppm");   // PPM (P6), открывается в любом просмотрщике</code></pre>
-
-      <h2>Alpha modes</h2>
-      <table>
-        <tr><th>Константа</th><th>Поведение</th></tr>
-        <tr><td><code>SDGR_ALPHA_OPAQUE</code></td><td>Непрозрачно, depth write on</td></tr>
-        <tr><td><code>SDGR_ALPHA_MASK</code></td><td>Альфа-тест по <code>alpha_cutoff</code></td></tr>
-        <tr><td><code>SDGR_ALPHA_BLEND</code></td><td>Прозрачность, depth write off — рисуется после opaque</td></tr>
-      </table>
-    </section>
-
-    <!-- ======================== MESH ======================== -->
-    <section class="page" id="mesh">
-      <h1>GPU-меши</h1>
-      <p class="lead">Загрузка glTF-примитива на GPU одним вызовом. Или создание простых фигур на лету.</p>
-
-      <h2>Из glTF</h2>
-<pre><code>sdge_mesh mesh;
-const sdge_primitive *prim = &amp;gltf-&gt;meshes[mesh_idx].prims[0];
-const sdge_gltf_material *mat = &amp;gltf-&gt;materials[prim-&gt;material];
-
-sdge_mesh_upload(&amp;mesh, prim, mat);
-
-// ... использовать в sdgr_draw_mesh_ex(...)
-
-sdge_mesh_destroy(&amp;mesh);</code></pre>
-
-      <h2>Примитивы</h2>
+<h3>Меши-примитивы</h3>
 <pre><code>sdge_mesh box;
-sdge_mesh_create_box(&amp;box, 0.5f, 0.5f, 0.5f);   // half-extents
+sdge_mesh_create_box(&amp;box, 0.5f, 0.5f, 0.5f);
 
 sdge_mesh sphere;
-sdge_mesh_create_sphere(&amp;sphere, 1.0f, 24, 16); // radius, slices, stacks</code></pre>
+sdge_mesh_create_sphere(&amp;sphere, 1.0f, 32, 16);
 
-      <h2>Атрибуты</h2>
-      <p>Layout совпадает с шейдером рендерера:</p>
-      <table>
-        <tr><th>Location</th><th>Атрибут</th></tr>
-        <tr><td>0</td><td>POSITION (vec3)</td></tr>
-        <tr><td>1</td><td>NORMAL (vec3)</td></tr>
-        <tr><td>2</td><td>JOINTS (vec4, float)</td></tr>
-        <tr><td>3</td><td>WEIGHTS (vec4, float)</td></tr>
-        <tr><td>4</td><td>TEXCOORD_0 (vec2)</td></tr>
-        <tr><td>5</td><td>TEXCOORD_1 (vec2)</td></tr>
-        <tr><td>6</td><td>TANGENT (vec4)</td></tr>
-      </table>
+sdgr_draw_mesh(&amp;box, world, NULL, 0, color, 0, 0.5f, 0, 0);
 
-      <h2>Bounding-сфера</h2>
-<pre><code>float center[3], radius;
-sdge_mesh_world_sphere(&amp;mesh, model_matrix, center, &amp;radius);
+sdge_mesh_destroy(&amp;box);
+sdge_mesh_destroy(&amp;sphere);</code></pre>
 
-if (sdgr_sphere_visible(center, radius)) {
-    sdgr_draw_mesh_ex(&amp;mesh, model_matrix, ...);
-}</code></pre>
-    </section>
+<!-- ================================================================ MATH -->
+<h2 id="math">Математика <a class="anchor" href="#math">#</a></h2>
 
-    <!-- ======================== MODEL ======================== -->
-    <section class="page" id="model">
-      <h1>Модели</h1>
-      <p class="lead">Высокоуровневый субъект: загрузка glTF, анимации, иерархия нод, отрисовка со скиннингом и frustum-culling.</p>
+<p>
+  Заголовок <code>math/math3d.h</code> — header-only, всё <code>static inline</code>.
+  Типы: <code>sdg_vec3</code>, <code>sdg_vec4</code>, <code>sdg_quat</code> (x, y, z, w),
+  <code>sdg_mat4</code> — <b>column-major</b> (<code>index = col*4 + row</code>).
+</p>
 
-      <h2>Загрузка и отрисовка</h2>
-<pre><code>sdge_model *hero = sdge_model_load("assets/hero.glb");
-if (!hero) return 1;
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Группа</th><th>Функции</th></tr></thead>
+  <tbody>
+    <tr><td>Векторы</td><td><code>v3_set, v3_copy, v3_add, v3_sub, v3_mul, v3_mulv, v3_dot, v3_cross, v3_len, v3_norm, v3_lerp</code></td></tr>
+    <tr><td>Кватернионы</td><td><code>q_identity, q_copy, q_dot, q_norm, q_from_axis_angle, q_mul, q_slerp, q_rot_vec3, q_to_mat4</code></td></tr>
+    <tr><td>Матрицы</td><td><code>m4_identity, m4_copy, m4_mul, m4_translation, m4_scaling, m4_mul_vec4, m4_mul_point, m4_mul_vec3_dir, m4_transpose, m4_invert, m4_invert_rigid, m4_perspective, m4_ortho, m4_look_at, m4_from_trs</code></td></tr>
+    <tr><td>Отсечение</td><td><code>frustum_from_vp, sphere_in_frustum</code></td></tr>
+  </tbody>
+</table>
+</div>
 
-// в цикле:
-sdge_model_draw(hero, NULL);   // NULL = identity transform
+<pre><code>sdg_vec3 pos, dir;
+v3_set(pos, 0.0f, 1.0f, 0.0f);
+v3_norm(dir, (sdg_vec3){ 0.0f, 0.0f, -1.0f });
 
-// в конце:
-sdge_model_destroy(hero);</code></pre>
+sdg_quat q;
+q_from_axis_angle(q, (sdg_vec3){ 0, 1, 0 }, SDG_PI * 0.5f);
 
-      <div class="callout tip">
-        <strong>Что делает <code>sdge_model_load</code></strong>
-        Загружает glTF, загружает все меши на GPU, декодирует и грузит текстуры (sRGB для base/emissive, linear для остальных), создаёт материалы.
-      </div>
+sdg_mat4 world;
+m4_from_trs(world, pos, q, (sdg_vec3){ 1, 1, 1 });</code></pre>
 
-      <h2>Анимации</h2>
-<pre><code>int n = sdge_model_anim_count(hero);
-for (int i = 0; i &lt; n; ++i)
-    printf("anim %d: %s\n", i, sdge_model_anim_name(hero, i));
+<div class="note">
+  <span class="label">Конвенции</span>
+  Правая система координат, <b>Y вверх</b>, <b>−Z вперёд</b> (как в glTF).
+  Матрицы загружаются в OpenGL без transpose.
+</div>
 
-sdge_model_play(hero, 0, 1);       // anim 0, loop
-sdge_model_set_time(hero, 2.5f);   // прыгнуть в середину
+<!-- ============================================================= CAMERA -->
+<h2 id="camera3d">3D-камера <a class="anchor" href="#camera3d">#</a></h2>
 
-// в цикле
-sdge_model_advance(hero, dt);
-
-// остановить
-sdge_model_stop(hero);</code></pre>
-
-      <h2>Множественная отрисовка</h2>
-      <p>Модель можно нарисовать несколько раз с разной трансформацией:</p>
-<pre><code>sdg_mat4 world;
-m4_translation(world, 5, 0, 0);
-sdge_model_draw(hero, world);   // копия на (5, 0, 0)</code></pre>
-
-      <h2>Иерархия (для редактора/вьюера)</h2>
-<pre><code>int count = sdge_model_node_count(hero);
-for (int i = 0; i &lt; count; ++i) {
-    const char *name   = sdge_model_node_name(hero, i);
-    int parent         = sdge_model_node_parent(hero, i);
-    int mesh_idx       = sdge_model_node_mesh(hero, i);
-
-    float t[3], r[4], s[3];
-    sdge_model_node_get_transform(hero, i, t, r, s);
-
-    sdg_mat4 world;
-    sdge_model_node_world(hero, i, world);
-}</code></pre>
-
-      <h3>Изменение трансформа</h3>
-<pre><code>sdg_vec3 t = {1, 0, 0};
-sdg_quat r; q_identity(r);
-sdg_vec3 s = {1, 1, 1};
-
-sdge_model_node_set_transform(hero, node_idx, t, r, s);
-sdge_model_refresh(hero);   // после батча изменений</code></pre>
-
-      <h2>Материалы и текстуры</h2>
-<pre><code>int mat_idx = sdge_model_node_material(hero, node, prim_idx);
-int prim_count = sdge_model_node_prim_count(hero, node);</code></pre>
-
-      <h3>Override текстур</h3>
-<pre><code>unsigned custom = sdgr_upload_texture(w, h, pixels);
-
-// ВНИМАНИЕ: модель забирает ownership текстуры.
-// Не вызывайте sdgr_free_texture сами.
-sdge_model_set_node_texture(hero, node, SDGR_SLOT_BASE, custom);
-
-// Проверить, что стоит
-unsigned current = sdge_model_get_node_texture(hero, node, SDGR_SLOT_BASE);
-
-// Убрать override (вернуть материал)
-sdge_model_set_node_texture(hero, node, SDGR_SLOT_BASE, 0);</code></pre>
-
-      <div class="callout warn">
-        <strong>Ownership текстуры</strong>
-        После <code>sdge_model_set_node_texture</code> текстура принадлежит модели. Она будет освобождена при <code>sdge_model_destroy</code>. Если передадите ту же текстуру в другой слот — будет double-free.
-      </div>
-    </section>
-
-    <!-- ======================== CAMERA 3D ======================== -->
-    <section class="page" id="camera3d">
-      <h1>Камера 3D</h1>
-      <p class="lead">Орбитальная или FPS-камера с поддержанием view/proj/frustum в актуальном состоянии.</p>
-
-      <h2>Орбитальный режим</h2>
 <pre><code>sdge_camera3d cam;
-sdge_camera3d_init(&amp;cam, 60.0f, 16.0f/9.0f, 0.1f, 100.0f);
+sdge_camera3d_init(&amp;cam, 50.0f, aspect, 0.05f, 500.0f);
 
-sdge_camera3d_orbit(&amp;cam,
-    (float[3]){0, 1, 0},   // центр
-    5.0f,                  // расстояние
-    0.3f,                  // yaw (радианы)
-    0.4f);                 // pitch (радианы, [-1.5, 1.5])
+/* orbit: камера вращается вокруг точки */
+float center[3] = { 0.0f, 1.0f, 0.0f };
+sdge_camera3d_orbit(&amp;cam, center, 4.0f, yaw, pitch);
 
-sdge_camera3d_update(&amp;cam);
+/* fps: позиция + yaw/pitch, forward = -Z при (0,0) */
+sdge_camera3d_fps(&amp;cam, position, yaw, pitch);
+
+/* либо вручную */
+sdge_camera3d_look_at(&amp;cam, eye, target);
+
+sdge_camera3d_set_aspect(&amp;cam, (float)w / (float)h);
+sdge_camera3d_update(&amp;cam);          /* обязательно после изменений */
+
 sdgr_set_camera(cam.view, cam.proj, cam.pos);</code></pre>
 
-      <h3>Управление от мыши</h3>
-<pre><code>static float yaw = 0.3f, pitch = 0.4f, dist = 5.0f;
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Поле</th><th>Смысл</th></tr></thead>
+  <tbody>
+    <tr><td><code>pos</code></td><td>Позиция камеры (после update).</td></tr>
+    <tr><td><code>fov_deg</code></td><td>Вертикальный угол обзора.</td></tr>
+    <tr><td><code>znear / zfar</code></td><td>Ближняя и дальняя плоскости.</td></tr>
+    <tr><td><code>center, dist, yaw, pitch</code></td><td>Состояние orbit-режима (радианы).</td></tr>
+    <tr><td><code>view, proj, vp</code></td><td>Готовые матрицы после <code>update</code>.</td></tr>
+    <tr><td><code>frustum[6][4]</code></td><td>Плоскости для отсечения.</td></tr>
+  </tbody>
+</table>
+</div>
 
-void on_mouse(sdge_window *w, int btn, int action, int mods) {
-    dragging = (action == SDGE_PRESS);
+<p>
+  <code>sdge_camera3d_forward()</code> возвращает нормированное направление
+  взгляда, <code>sdge_camera3d_sphere_visible()</code> — результат теста
+  сферы по фрустуму.
+</p>
+
+<h4>Мышь для orbit-камеры</h4>
+<pre><code>static void on_cursor(sdge_window *w, double x, double y) {
+    if (!dragging) return;
+    yaw   -= (float)(x - last_x) * 0.01f;
+    pitch += (float)(y - last_y) * 0.01f;
+    if (pitch &gt;  1.5f) pitch =  1.5f;
+    if (pitch &lt; -1.5f) pitch = -1.5f;
+    last_x = x; last_y = y;
 }
 
-void on_cursor(sdge_window *w, double x, double y) {
-    if (!dragging) { last_x = x; last_y = y; return; }
-    yaw   += (float)(x - last_x) * 0.005f;
-    pitch -= (float)(y - last_y) * 0.005f;
-    pitch = clampf(pitch, -1.4f, 1.4f);
-    last_x = x; last_y = y;
-    sdge_camera3d_orbit(&amp;cam, center, dist, yaw, pitch);
-    sdge_camera3d_update(&amp;cam);
+static void on_scroll(sdge_window *w, double dx, double dy) {
+    dist -= (float)dy * 0.2f;
+    if (dist &lt; 0.2f) dist = 0.2f;
 }</code></pre>
 
-      <h2>FPS-режим</h2>
-<pre><code>sdge_camera3d_fps(&amp;cam,
-    (float[3]){0, 1.6f, 5},   // позиция
-    yaw, pitch);              // forward = -Z при (0,0)
-sdge_camera3d_update(&amp;cam);</code></pre>
+<!-- ============================================================ LIGHTING -->
+<h2 id="lighting">Свет <a class="anchor" href="#lighting">#</a></h2>
 
-      <h2>Look-at</h2>
-<pre><code>sdge_camera3d_look_at(&amp;cam,
-    (float[3]){3, 2, 5},      // eye
-    (float[3]){0, 0, 0});     // target
-sdge_camera3d_update(&amp;cam);</code></pre>
+<p>Есть три высокоуровневых «субъекта света»; каждый просто вызывает рендерер.</p>
 
-      <h2>Дополнительно</h2>
-<pre><code>sdge_camera3d_set_aspect(&amp;cam, w / (float)h);
-sdge_camera3d_update(&amp;cam);
+<div class="filename">Ambient + Sun + Point</div>
+<pre><code>#include &lt;sdge.h&gt;
 
-float fwd[3];
-sdge_camera3d_forward(&amp;cam, fwd);
+sdge_ambient_light ambient;
+float amb[3] = { 0.22f, 0.24f, 0.30f };
+sdge_ambient_light_init(&amp;ambient, amb);
+sdge_ambient_light_apply(&amp;ambient);
 
-if (sdge_camera3d_sphere_visible(&amp;cam, center, radius)) {
-    // в кадре
-}</code></pre>
+sdge_sun sun;
+float dir[3]   = { -0.5f, -1.0f, -0.4f };
+float white[3] = { 1.0f, 0.97f, 0.92f };
+sdge_sun_init(&amp;sun, dir, white, 2.5f);
+sdge_sun_apply(&amp;sun);
 
-      <div class="callout warn">
-        <strong>Не забудьте <code>sdge_camera3d_update</code></strong>
-        После любого изменения полей камеры (или после <code>orbit/fps/look_at</code>) вызовите <code>update</code>. <code>view/proj/frustum</code> обновятся.
-      </div>
-    </section>
+sdge_point_light lamp;
+float pos[3]  = { 2.0f, 2.5f, -1.0f };
+float warm[3] = { 1.0f, 0.75f, 0.45f };
+sdge_point_light_init(&amp;lamp, pos, warm, 3.0f, 10.0f);
+sdge_point_light_apply(&amp;lamp, 0);   /* слот 0..7 */</code></pre>
 
-    <!-- ======================== LIGHT ======================== -->
-    <section class="page" id="light">
-      <h1>Освещение</h1>
-      <p class="lead">Три типа: ambient, sun (directional) и point light. Управляются через рендерер.</p>
+<div class="note">
+  <span class="label">Разница</span>
+  <code>sdge_sun.dir</code> — направление, <b>куда летит свет</b>
+  (нормализуется при apply). <code>sdge_point_light.radius</code> —
+  дистанция затухания, должна быть &gt; 0.
+</div>
 
-      <h2>Ambient</h2>
-<pre><code>sdge_ambient_light amb;
-sdge_ambient_light_init(&amp;amb, (float[3]){0.2f, 0.2f, 0.25f});
-sdge_ambient_light_apply(&amp;amb);</code></pre>
+<!-- ============================================================== MODELS -->
+<h2 id="models">Модели glTF <a class="anchor" href="#models">#</a></h2>
 
-      <h2>Sun</h2>
-<pre><code>sdge_sun sun;
-sdge_sun_init(&amp;sun,
-    (float[3]){-0.5f, -1.0f, -0.3f},   // направление, куда свет ЛЕТИТ
-    (float[3]){1, 1, 1},
-    2.0f);                              // intensity
-sdge_sun_apply(&amp;sun);</code></pre>
+<p>
+  <code>sdge_model</code> — высокоуровневый 3D-объект: загружает
+  <code>.glb</code> или <code>.gltf</code> (+ внешние <code>.bin</code> и
+  текстуры), загружает меши на GPU, владеет анимационными плеерами и рисует
+  всю иерархию узлов со скинингом и отсечением.
+</p>
 
-      <h2>Point light</h2>
-<pre><code>sdge_point_light pl;
-sdge_point_light_init(&amp;pl,
-    (float[3]){2, 3, 0},               // позиция
-    (float[3]){1, 0.8f, 0.6f},         // цвет
-    1.5f,                               // intensity
-    10.0f);                             // радиус
+<div class="filename">Загрузка и отрисовка</div>
+<pre><code>sdge_model *model = sdge_model_load("assets/character.glb");
+if (!model) {
+    fprintf(stderr, "cannot load model\n");
+}
 
-sdge_point_light_apply(&amp;pl, 0);      // слот 0..SDGR_MAX_POINT_LIGHTS-1</code></pre>
+/* анимации */
+int count = sdge_model_anim_count(model);
+for (int i = 0; i &lt; count; ++i)
+    printf("anim %d: %s\n", i, sdge_model_anim_name(model, i));
 
-      <h3>Несколько источников</h3>
-<pre><code>sdge_point_light lights[3];
-for (int i = 0; i &lt; 3; ++i) {
-    sdge_point_light_init(&amp;lights[i], positions[i], colors[i], 1.0f, 8.0f);
-    sdge_point_light_apply(&amp;lights[i], i);
-}</code></pre>
+sdge_model_play(model, 0, 1);      /* индекс, loop = 1 */
+sdge_model_advance(model, dt);     /* каждый кадр */
+sdge_model_set_time(model, 1.25f); /* вручную */
 
-      <div class="callout">
-        <strong>Порядок вызовов</strong>
-        Применяйте свет <em>каждый кадр</em>, до <code>sdgr_end_frame</code>. Рендерер сбрасывает счётчик источников в <code>sdgr_begin_frame</code>.
-      </div>
-    </section>
+/* отрисовка (parent transform = NULL / identity) */
+sdge_model_draw(model, NULL);
 
-    <!-- ======================== ANIM ======================== -->
-    <section class="page" id="anim">
-      <h1>Плеер анимаций</h1>
-      <p class="lead">Низкоуровневый API для скелетной анимации. Обычно хватает <code>sdge_model_play</code>, но если нужен контроль — вот он.</p>
-
-      <h2>Жизненный цикл</h2>
-<pre><code>// Один проигрыватель = одна модель + одна анимация
-sdge_anim_player *p = sdge_anim_player_create(gltf_model, 0);
-// ... 
-sdge_anim_player_destroy(p);</code></pre>
-
-      <h2>Управление временем</h2>
-<pre><code>sdge_anim_player_advance(p, dt);
-sdge_anim_player_set_time(p, 0.5f);
-sdge_anim_player_reset(p);            // time → 0
-
-float t = sdge_anim_player_get_time(p);
-float dur = sdge_anim_player_get_duration(p);
-
-sdge_anim_player_set_looping(p, 1);
-int loop = sdge_anim_player_is_looping(p);</code></pre>
-
-      <h2>Матрицы и skin-палитра</h2>
-<pre><code>// Локальная матрица ноды
-sdg_mat4 local;
-sdge_anim_player_get_local(p, node_idx, local);
-
-// Мировая матрица (вся цепочка родителей)
+/* дополнительный родительский трансформ */
 sdg_mat4 world;
-sdge_anim_player_get_world(p, node_idx, world);
+m4_translation(world, 3.0f, 0.0f, 0.0f);
+sdge_model_draw(model, world);
 
-// Палитра для скиннинга
-const float *palette = sdge_anim_player_skin_palette(p, &amp;gltf-&gt;skins[0]);
-// palette = joint_count × mat4 column-major
-// готово к glUniformMatrix4fv(loc, joint_count, GL_FALSE, palette)</code></pre>
+sdge_model_destroy(model);</code></pre>
 
-      <h2>Оптимизации под капотом</h2>
-      <ul>
-        <li>Каналы разрешаются <strong>один раз</strong> при создании плеера</li>
-        <li>Топологический порядок нод — обход линейный, без рекурсии</li>
-        <li>Матрицы ленивые: <code>set_time</code> дважды подряд бесплатно</li>
-        <li>Skin-палитра переиспользует закэшированный world-проход</li>
-        <li>Ключи ищутся бинарным поиском</li>
-      </ul>
+<div class="warn">
+  <span class="label">Порядок</span>
+  <code>sdge_model_advance()</code> вызывайте <b>до</b>
+  <code>sdge_model_draw()</code>, а <code>sdge_model_draw()</code> — между
+  <code>sdgr_begin_frame()</code> и <code>sdgr_end_frame()</code> после
+  <code>sdgr_set_camera()</code>.
+</div>
 
-      <div class="callout tip">
-        <strong>Обычно не нужен напрямую</strong>
-        <code>sdge_model_play(hero, 0, 1)</code> + <code>sdge_model_advance(hero, dt)</code> покрывают 90% случаев. Плеер напрямую — если рисуете несколько экземпляров одной модели с разной анимацией.
-      </div>
-    </section>
+<h3>Иерархия узлов</h3>
+<p>
+  Каждый узел glTF доступен как элемент модели. Это основа для привязки
+  оружия к руке, поиска объектов по имени и процедурных правок.
+</p>
+<pre><code>int nodes = sdge_model_node_count(model);
 
-    <!-- ======================== CAMERA2D ======================== -->
-    <section class="page" id="camera2d">
-      <h1>Камера 2D</h1>
-      <p class="lead">Ортографическая камера с позицией, зумом и поворотом. Пиксели, origin в левом верхнем углу.</p>
+for (int n = 0; n &lt; nodes; ++n) {
+    const char *name = sdge_model_node_name(model, n);
+    int parent = sdge_model_node_parent(model, n);
+    int mesh   = sdge_model_node_mesh(model, n);   /* -1 = нет меша */
+    int skin   = sdge_model_node_skin(model, n);
+    printf("%d '%s' parent=%d mesh=%d skin=%d\n", n, name, parent, mesh, skin);
+}
 
-      <h2>Инициализация</h2>
-<pre><code>sdge_camera2d cam;
-sdge_camera2d_init(&amp;cam, 1280, 720);
+/* локальный TRS */
+float t[3], r[4], s[3];
+sdge_model_node_get_transform(model, node, t, r, s);
 
-sdge_camera2d_set_pos(&amp;cam, 0, 0);
-sdge_camera2d_set_zoom(&amp;cam, 2.0f);      // 2× увеличение
-sdge_camera2d_set_rotation(&amp;cam, 0.0f);
+/* изменить и пересчитать мировые матрицы */
+t[1] += 0.5f;
+sdge_model_node_set_transform(model, node, t, r, s);
+sdge_model_refresh(model);
 
-sdge_camera2d_update(&amp;cam);              // после изменений
+/* мировая матрица и габариты */
+sdg_mat4 node_world;
+sdge_model_node_world(model, node, node_world);
+float bmin[3], bmax[3];
+sdge_model_node_bounds(model, node, bmin, bmax);</code></pre>
 
-// проецировать на экран (для 2D-спрайтов через sdgr_set_camera)
-sdgr_set_camera(cam.view, cam.proj, (float[3]){0,0,0});</code></pre>
+<h3>Текстура на конкретный узел</h3>
+<pre><code>/* slot: SDGR_SLOT_BASE, SDGR_SLOT_MR, SDGR_SLOT_NORMAL,
+ *       SDGR_SLOT_OCCLUSION, SDGR_SLOT_EMISSIVE */
+sdge_model_set_node_texture(model, node, SDGR_SLOT_BASE, tex);
 
-      <h2>Экран ↔ мир</h2>
-<pre><code>float world[2];
-sdge_camera2d_screen_to_world(&amp;cam, mouse_x, mouse_y, world);
+/* 0 = снова использовать текстуру материала */
+sdge_model_set_node_texture(model, node, SDGR_SLOT_BASE, 0);
 
-float screen[2];
-sdge_camera2d_world_to_screen(&amp;cam, player_x, player_y, screen);</code></pre>
+unsigned current = sdge_model_get_node_texture(model, node, SDGR_SLOT_BASE);</code></pre>
 
-      <h2>Видимая область</h2>
-<pre><code>float rect[4];   // x, y, w, h — AABB в мировых координатах
-sdge_camera2d_bounds(&amp;cam, rect);</code></pre>
+<h3>Материалы узла</h3>
+<pre><code>int prims = sdge_model_node_prim_count(model, node);
+for (int p = 0; p &lt; prims; ++p) {
+    int mat = sdge_model_node_material(model, node, p); /* -1 = нет */
+}</code></pre>
 
-      <div class="callout">
-        <strong>Про rotation</strong>
-        <code>sdge_camera2d_bounds</code> возвращает axis-aligned границы — при <code>rotation ≠ 0</code> они охватывают повёрнутый прямоугольник, а не совпадают с ним.
-      </div>
-    </section>
+<h3>Низкоуровневые данные glTF</h3>
+<p>
+  <code>sdge_model_gltf()</code> возвращает <code>const sdge_gltf_model *</code>
+  с полным разобранным файлом. Владение остаётся у модели.
+</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Тип</th><th>Что содержит</th></tr></thead>
+  <tbody>
+    <tr><td><code>sdge_gltf_model</code></td><td><code>nodes, meshes, skins, anims, materials, images, textures, samplers, buffer_views</code> + arena.</td></tr>
+    <tr><td><code>sdge_gltf_node</code></td><td><code>parent, children[], mesh, skin, matrix, translation, rotation, scale, name</code>.</td></tr>
+    <tr><td><code>sdge_gltf_mesh</code></td><td>Имя и массив <code>sdge_primitive</code>.</td></tr>
+    <tr><td><code>sdge_primitive</code></td><td>Accessor'ы: <code>positions, normals, texcoords, texcoords1, tangents, colors, joints, weights, indices</code>; <code>material, mode, has_skin</code>.</td></tr>
+    <tr><td><code>sdge_gltf_material</code></td><td>PBR-факторы, alpha-режим, 5 <code>sdge_gltf_texinfo</code>.</td></tr>
+    <tr><td><code>sdge_gltf_skin</code></td><td><code>joints[], inverse_bind[]</code>, <code>skeleton_root</code>.</td></tr>
+    <tr><td><code>sdge_gltf_animation</code></td><td>Имя, длительность и массив каналов.</td></tr>
+    <tr><td><code>sdge_gltf_channel</code></td><td><code>node, path (T/R/S/W), interp, times[], values[], comps</code>.</td></tr>
+  </tbody>
+</table>
+</div>
 
-    <!-- ======================== UI ======================== -->
-    <section class="page" id="ui">
-      <h1>UI-рендерер</h1>
-      <p class="lead">SDF-шейдер: скруглённые прямоугольники и текст из атласа. Всё батчится в один draw call.</p>
+<pre><code>const sdge_gltf_model *raw = sdge_model_gltf(model);
+printf("%d nodes, %d meshes, %d materials, %d animations\n",
+       raw-&gt;node_count, raw-&gt;mesh_count,
+       raw-&gt;material_count, raw-&gt;anim_count);</code></pre>
 
-      <h2>Инициализация</h2>
-<pre><code>sdui_init();             // после GL-контекста
-// ...
+<h3>Поддерживаемые возможности glTF</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Возможность</th><th>Статус</th></tr></thead>
+  <tbody>
+    <tr><td><code>.glb</code> и <code>.gltf</code> + внешний <code>.bin</code>, несколько буферов</td><td><span class="pill ok">да</span></td></tr>
+    <tr><td>Узлы, TRS и матрицы, иерархия</td><td><span class="pill ok">да</span></td></tr>
+    <tr><td>Скины, inverse bind, до 128 суставов</td><td><span class="pill ok">да</span></td></tr>
+    <tr><td>Анимации T/R/S: LINEAR, STEP, CUBICSPLINE</td><td><span class="pill ok">да</span></td></tr>
+    <tr><td>PBR-материалы, normal/occlusion/emissive, alpha modes</td><td><span class="pill ok">да</span></td></tr>
+    <tr><td>Текстуры: внешние, data-URI, bufferView</td><td><span class="pill ok">да</span></td></tr>
+    <tr><td><code>KHR_texture_transform</code>, <code>KHR_materials_emissive_strength</code></td><td><span class="pill ok">да</span></td></tr>
+    <tr><td><code>KHR_materials_pbrSpecularGlossiness</code></td><td><span class="pill partial">приблизительно</span></td></tr>
+    <tr><td>Морф-таргеты (WEIGHTS)</td><td><span class="pill no">нет</span></td></tr>
+    <tr><td>Sparse accessor'ы</td><td><span class="pill no">нет</span></td></tr>
+    <tr><td>Draco / meshopt-сжатие</td><td><span class="pill no">геометрия пустая</span></td></tr>
+    <tr><td>Примитивы кроме triangles (<code>mode != 4</code>)</td><td><span class="pill no">нет</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ========================================================== ANIMATIONS -->
+<h2 id="animations">Анимации и скины <a class="anchor" href="#animations">#</a></h2>
+
+<p>
+  <code>sdge_model</code> уже содержит плееры. Низкоуровневый API нужен,
+  если вы рисуете меши вручную или хотите смешивать/сэмплировать анимации
+  самостоятельно.
+</p>
+
+<pre><code>const sdge_gltf_model *m = sdge_model_gltf(model);
+
+sdge_anim_player *player = sdge_anim_player_create(m, 0); /* -1 = bind pose */
+sdge_anim_player_set_looping(player, 1);
+
+for (;;) {
+    sdge_anim_player_advance(player, dt);
+    /* world-матрица узла */
+    sdg_mat4 world;
+    sdge_anim_player_get_world(player, node, world);
+    /* палитра скина: joint_count матриц, готовых для шейдера */
+    const float *palette =
+        sdge_anim_player_skin_palette(player, &amp;m-&gt;skins[0]);
+    /* ... sdgr_draw_mesh_ex(..., palette, skin-&gt;joint_count, ...) ... */
+}
+
+sdge_anim_player_destroy(player);</code></pre>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Функция</th><th>Назначение</th></tr></thead>
+  <tbody>
+    <tr><td><code>sdge_anim_player_create(m, anim)</code></td><td>Плеер для одной анимации модели; <code>anim &lt; 0</code> — статическая поза.</td></tr>
+    <tr><td><code>set_time / get_time</code></td><td>Позиция воспроизведения в секундах.</td></tr>
+    <tr><td><code>advance(dt)</code></td><td>Продвинуть время (с учётом loop).</td></tr>
+    <tr><td><code>get_duration</code></td><td>Длительность анимации.</td></tr>
+    <tr><td><code>set_looping / is_looping</code></td><td>Зацикливание.</td></tr>
+    <tr><td><code>get_local / get_world</code></td><td>Локальная и мировая матрица узла после сэмплирования.</td></tr>
+    <tr><td><code>skin_palette(player, skin)</code></td><td>Массив <code>world(joint) * inverseBind</code>.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  <span class="label">Производительность</span>
+  Каналы разрешаются один раз при создании плеера, порядок узлов
+  топологический, поиск ключей — бинарный. Матрицы пересчитываются лениво:
+  повторная установка того же времени ничего не стоит. Один плеер — одна
+  анимация; смешивание делайте вручную через несколько плееров.
+</div>
+
+<!-- ============================================================ TEXTURES -->
+<h2 id="textures">Текстуры <a class="anchor" href="#textures">#</a></h2>
+
+<pre><code>sdga_image img;
+int rc = sdga_image_load_rgba("assets/tex.png", &amp;img);
+if (rc != 0) { /* ошибка */ }
+
+/* img.pixels — RGBA8, img.w * img.h * 4 байт, верхняя строка первая */
+unsigned tex = sdgr_upload_texture_ex(img.w, img.h, img.pixels, &amp;desc);
+sdga_image_free(&amp;img);</code></pre>
+
+<p>
+  <code>sdga_image_load_rgba_mem(data, size, &amp;img)</code> декодирует
+  картинку из памяти — удобно для встроенных ресурсов.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Формат</th><th>Поддержка</th></tr></thead>
+  <tbody>
+    <tr><td>PNG, JPG, BMP, TGA, HDR</td><td>через stb_image</td></tr>
+    <tr><td>sRGB для base color / emissive</td><td><code>desc.srgb = 1</code></td></tr>
+    <tr><td>Mip-карты</td><td><code>desc.mipmaps = 1</code></td></tr>
+    <tr><td>Wrap / фильтры</td><td><code>desc.wrap_s/t</code>, <code>min/mag_filter</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="tip">
+  <span class="label">Совет</span>
+  Не загружайте одну и ту же текстуру каждый кадр. Держите GPU-имена в
+  своих структурах и освобождайте их при выходе из уровня.
+</div>
+
+<!-- =============================================================== FONTS -->
+<h2 id="fonts">Шрифты и UI-рендер <a class="anchor" href="#fonts">#</a></h2>
+
+<p>
+  <code>sdui_*</code> — низкоуровневый 2D-рендер: скруглённые прямоугольники
+  и текст рисуются одним шейдером и одним draw call. GUI построен поверх него.
+</p>
+
+<pre><code>sdui_init();                       /* после создания GL-контекста */
+
+sdga_font *font = sdga_load_font("assets/font.ttf", 18.0f);
+if (font) sdui_set_font(font);     /* NULL = встроенный 5x7 */
+
+sdui_begin(width, height);
+sdui_box(20, 20, 300, 80, (float[]){ 0.1f, 0.1f, 0.1f, 0.8f });
+sdui_text(32, 36, "Hello, Diamond!", 18.0f,
+          (float[]){ 1, 1, 1, 1 });
+sdui_end();
+
+sdga_free_font(font);              /* только после того, как UI перестал его использовать */
 sdui_shutdown();</code></pre>
 
-      <h2>Кадр</h2>
-<pre><code>sdui_begin(1280, 720);
+<p>
+  Шрифт хранит несколько «face» под разные размеры в одном атласе
+  (<code>sdga_font_add_face</code>), поэтому тонкие штрихи не размываются.
+  <code>sdui_text_width()</code> и <code>sdui_text_height()</code> помогают
+  верстать текст.
+</p>
 
-// прямоугольники и текст
-sdui_box(20, 20, 200, 50, (float[4]){0.2f, 0.3f, 0.5f, 1.0f});
-sdui_text(30, 30, "Hello", 18.0f, (float[4]){1,1,1,1});
+<!-- ================================================================= GUI -->
+<h2 id="gui">GUI <a class="anchor" href="#gui">#</a></h2>
 
-sdui_end();   // flush</code></pre>
+<p>
+  GUI — retained-mode: виджеты это обычные структуры, которыми владеет игра;
+  менеджер хранит список, hover/focus и раздаёт ввод.
+</p>
 
-      <h2>Прямоугольники</h2>
-      <h3>Простой</h3>
-<pre><code>sdui_box(x, y, w, h, color);</code></pre>
-
-      <h3>Полный</h3>
-<pre><code>sdui_rect r = {
-    .x = 20, .y = 20, .w = 200, .h = 60,
-    .radius       = 12.0f,    // скругление
-    .border_width = 2.0f,
-    .softness     = 0.0f,     // > 0 → soft blob (тень)
-    .mode         = SDUI_MODE_BOX,
-    .color        = {0.2f, 0.3f, 0.5f, 1.0f},
-    .border_color = {0.5f, 0.7f, 1.0f, 1.0f},
-};
-sdui_draw_rect(&amp;r);</code></pre>
-
-      <h3>Режимы</h3>
-      <table>
-        <tr><th>Режим</th><th>Что рисует</th></tr>
-        <tr><td><code>SDUI_MODE_BOX</code></td><td>Скруглённый прямоугольник с опциональной обводкой</td></tr>
-        <tr><td><code>SDUI_MODE_TEXT</code></td><td>Глиф из атласа</td></tr>
-        <tr><td><code>SDUI_MODE_SOFT</code></td><td>Мягкий blob (для теней)</td></tr>
-      </table>
-
-      <h2>Текст</h2>
-<pre><code>float w = sdui_text(x, y, "Hello\nworld", 16.0f, color);
-
-// Текст, центрированный в прямоугольнике
-sdui_text_centered(x, y, w, h, "OK", 16.0f, color);
-
-// Метрики
-float tw = sdui_text_width("Hello", 16.0f);
-float th = sdui_text_height(16.0f);</code></pre>
-
-      <p><code>size</code> — высота заглавной буквы в пикселях. Поддерживается многострочный текст через <code>\n</code>.</p>
-
-      <h2>Шрифты</h2>
-<pre><code>sdga_font *f = sdga_load_font("assets/Inter.ttf", 18.0f);
-sdui_set_font(f);
-
-// ...
-sdui_set_font(NULL);   // вернуть встроенный</code></pre>
-
-      <h2>Встроенный 5×7</h2>
-<pre><code>#define SDUI_FONT_W  5
-#define SDUI_FONT_H  7</code></pre>
-      <p>Масштабируется параметром <code>size</code>.</p>
-
-      <div class="callout tip">
-        <strong>Один draw call</strong>
-        Всё, что вы вызываете между <code>sdui_begin</code> и <code>sdui_end</code>, попадает в один VBO и уходит одним <code>glDrawArrays</code>.
-      </div>
-    </section>
-
-    <!-- ======================== GUI ======================== -->
-    <section class="page" id="gui">
-      <h1>GUI-система</h1>
-      <p class="lead">Retained-mode виджеты поверх UI-рендерера. Кнопки, флажки, слайдеры, списки — всё готово.</p>
-
-      <h2>Менеджер</h2>
+<h3>Каркас</h3>
 <pre><code>sdge_gui *gui = sdge_gui_create();
-// ...
-sdge_gui_destroy(gui);</code></pre>
 
-      <h2>Кадр</h2>
-<pre><code>sdge_gui_begin(gui, 1280, 720);
-sdge_gui_draw(gui);
-sdge_gui_end(gui);</code></pre>
-
-      <h2>Ввод (из колбэков окна)</h2>
-<pre><code>void on_mouse_move(sdge_window *w, double x, double y) {
-    sdge_gui_mouse_move(gui, (float)x, (float)y);
-}
-void on_mouse_button(sdge_window *w, int btn, int action, int mods) {
-    sdge_gui_mouse_button(gui, btn, action);
-}
-void on_key(sdge_window *w, int key, int sc, int action, int mods) {
-    sdge_gui_key(gui, key, action);
-}
-void on_char(sdge_window *w, unsigned cp) {
-    sdge_gui_char(gui, cp);
-}
-void on_scroll(sdge_window *w, double dx, double dy) {
-    sdge_gui_scroll(gui, (float)dy);
-}</code></pre>
-
-      <h2>Виджеты</h2>
-      <p>Все виджеты начинаются с <code>sdge_widget base</code> — это позволяет использовать <code>sdge_gui_add(gui, &amp;widget.base)</code> для любого из них.</p>
-
-      <h3>Панель (div)</h3>
-<pre><code>sdge_gui_div panel;
-sdge_gui_div_init(&amp;panel, x, y, w, h, (float[4]){0.1f,0.1f,0.15f,0.95f});
-sdge_gui_add(gui, &amp;panel.base);</code></pre>
-
-      <h3>Кнопка</h3>
-<pre><code>void on_click(void *user) { /* ... */ }
-
-sdge_gui_button btn;
-sdge_gui_button_init(&amp;btn, x, y, 120, 40, "OK", on_click, NULL);
-sdge_gui_add(gui, &amp;btn.base);</code></pre>
-
-      <h3>Флажок</h3>
-<pre><code>void on_check(void *user, int checked) { /* ... */ }
-
-sdge_gui_checkbox cb;
-sdge_gui_checkbox_init(&amp;cb, x, y, 20, "V-Sync", 1);
-cb.on_change = on_check;
-sdge_gui_add(gui, &amp;cb.base);</code></pre>
-
-      <h3>Текстовое поле</h3>
-<pre><code>void on_text(void *user, const char *text) { /* ... */ }
-
-sdge_gui_input in;
-sdge_gui_input_init(&amp;in, x, y, 300, 36, "Ваше имя…");
-in.on_change = on_text;
-sdge_gui_add(gui, &amp;in.base);
-
-// Прочитать
-const char *val = sdge_gui_input_text(&amp;in);</code></pre>
-
-      <h3>Метка</h3>
-<pre><code>sdge_gui_label lbl;
-sdge_gui_label_init(&amp;lbl, x, y, w, 30, "Settings", 20.0f,
-                    (float[4]){1,1,1,1});
-lbl.align = SDGE_GUI_ALIGN_CENTER;
-sdge_gui_add(gui, &amp;lbl.base);</code></pre>
-
-      <h3>Прогресс-бар</h3>
-<pre><code>sdge_gui_progress pb;
-sdge_gui_progress_init(&amp;pb, x, y, 200, 20);
-sdge_gui_add(gui, &amp;pb.base);
-
-sdge_gui_progress_set(&amp;pb, 0.75f);</code></pre>
-
-      <h3>Слайдер</h3>
-<pre><code>void on_slide(void *user, float v) { volume = v; }
-
-sdge_gui_slider sl;
-sdge_gui_slider_init(&amp;sl, x, y, 260, 24, 0.7f);
-sl.on_change = on_slide;
-sdge_gui_add(gui, &amp;sl.base);</code></pre>
-
-      <h3>Радиокнопки</h3>
-<pre><code>sdge_gui_radio_group group;
-sdge_gui_radio_group_init(&amp;group);
-
-sdge_gui_radio r1, r2;
-sdge_gui_radio_init(&amp;r1, x, y,      16, 0, &amp;group);
-sdge_gui_radio_init(&amp;r2, x, y + 30, 16, 1, &amp;group);
-sdge_gui_add(gui, &amp;r1.base);
-sdge_gui_add(gui, &amp;r2.base);
-
-sdge_gui_radio_select(&amp;group, 0);   // программно выбрать</code></pre>
-
-      <h3>Список</h3>
-<pre><code>sdge_gui_listbox lb;
-sdge_gui_listbox_init(&amp;lb, x, y, 300, 200);
-sdge_gui_listbox_add(&amp;lb, "Option A");
-sdge_gui_listbox_add(&amp;lb, "Option B");
-sdge_gui_listbox_add(&amp;lb, "Option C");
-sdge_gui_add(gui, &amp;lb.base);
-
-// Прочитать выбор
-const char *sel = sdge_gui_listbox_selected(&amp;lb);</code></pre>
-
-      <h2>События виджетов</h2>
-      <p>Виджеты общаются через <code>event()</code> callback, но обычно вы подключаетесь через <code>on_click</code> / <code>on_change</code> / <code>on_select</code> конкретного виджета.</p>
-
-      <table>
-        <tr><th>Событие</th><th>Когда</th></tr>
-        <tr><td><code>SDGE_WIDGET_CLICK</code></td><td>ЛКМ release внутри виджета</td></tr>
-        <tr><td><code>SDGE_WIDGET_HOVER</code> / <code>UNHOVER</code></td><td>Мышь вошла / вышла</td></tr>
-        <tr><td><code>SDGE_WIDGET_KEY</code></td><td>Клавиатура (нужен фокус)</td></tr>
-        <tr><td><code>SDGE_WIDGET_CHAR</code></td><td>Символ (для input)</td></tr>
-        <tr><td><code>SDGE_WIDGET_FOCUS</code> / <code>BLUR</code></td><td>Смена фокуса</td></tr>
-        <tr><td><code>SDGE_WIDGET_SCROLL</code></td><td>Колесо над виджетом</td></tr>
-      </table>
-
-      <h2>Полный пример</h2>
-<pre><code>sdge_gui_div panel;
-sdge_gui_div_init(&amp;panel, 20, 20, 320, 400,
-                  (float[4]){0.1f,0.1f,0.15f,0.95f});
+sdge_gui_div panel;
+sdge_gui_div_init(&amp;panel, 40, 40, 360, 220, (float[]){ .12f, .13f, .16f, 1 });
+panel.radius = 10;
 sdge_gui_add(gui, &amp;panel.base);
 
-sdge_gui_label title;
-sdge_gui_label_init(&amp;title, 40, 40, 260, 30,
-                    "Настройки", 20.0f, (float[4]){1,1,1,1});
-sdge_gui_add(gui, &amp;title.base);
+sdge_gui_button button;
+sdge_gui_button_init(&amp;button, 60, 90, 180, 42, "Start",
+                     on_start_clicked, NULL);
+sdge_gui_add(gui, &amp;button.base);
 
-sdge_gui_checkbox vsync;
-sdge_gui_checkbox_init(&amp;vsync, 40, 90, 20, "V-Sync", 1);
-sdge_gui_add(gui, &amp;vsync.base);
+/* каждый кадр */
+sdge_gui_begin(gui, width, height);
+sdge_gui_draw(gui);
+sdge_gui_end(gui);
 
-sdge_gui_slider vol;
-sdge_gui_slider_init(&amp;vol, 40, 130, 260, 24, 0.7f);
-sdge_gui_add(gui, &amp;vol.base);
+sdge_gui_destroy(gui);</code></pre>
 
-sdge_gui_button ok;
-sdge_gui_button_init(&amp;ok, 40, 370, 100, 32, "OK", on_ok, NULL);
-sdge_gui_add(gui, &amp;ok.base);</code></pre>
-    </section>
+<div class="warn">
+  <span class="label">Ввод</span>
+  GUI не читает окно сам. Пробросьте события из callback'ов:
+  <code>sdge_gui_mouse_move()</code>, <code>sdge_gui_mouse_button()</code>,
+  <code>sdge_gui_key()</code>, <code>sdge_gui_char()</code>,
+  <code>sdge_gui_scroll()</code>.
+</div>
 
-    <!-- ======================== AUDIO ======================== -->
-    <section class="page" id="audio">
-      <h1>Spatial-аудио</h1>
-      <p class="lead">Свой software-микшер: 48 kHz stereo, 5 мс блоки, до 64 источников. Inverse-distance, equal-power pan, Doppler, LPF.</p>
+<pre><code>static void on_cursor(sdge_window *w, double x, double y) {
+    sdge_gui_mouse_move(gui, (float)x, (float)y);
+}
+static void on_mouse(sdge_window *w, int button, int action, int mods) {
+    sdge_gui_mouse_button(gui, button, action);
+}
+static void on_key(sdge_window *w, int key, int sc, int action, int mods) {
+    sdge_gui_key(gui, key, action);
+}
+static void on_char(sdge_window *w, unsigned cp) {
+    sdge_gui_char(gui, cp);
+}</code></pre>
 
-      <h2>Инициализация</h2>
+<h3>Виджеты</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Виджет</th><th>Создание</th><th>Колбэк / данные</th></tr></thead>
+  <tbody>
+    <tr><td>Панель</td><td><code>sdge_gui_div_init(&amp;d, x, y, w, h, color)</code></td><td><code>radius</code>, <code>border_*</code>, <code>shadow_*</code></td></tr>
+    <tr><td>Кнопка</td><td><code>sdge_gui_button_init(&amp;b, x, y, w, h, label, cb, user)</code></td><td><code>on_click(void *user)</code></td></tr>
+    <tr><td>Надпись</td><td><code>sdge_gui_label_init(&amp;l, x, y, w, h, text, size, color)</code></td><td><code>sdge_gui_label_set_text</code>, <code>align</code></td></tr>
+    <tr><td>Ввод текста</td><td><code>sdge_gui_input_init(&amp;in, x, y, w, h, placeholder)</code></td><td><code>on_change(void *user, const char *text)</code></td></tr>
+    <tr><td>Чекбокс</td><td><code>sdge_gui_checkbox_init(&amp;c, x, y, size, label, checked)</code></td><td><code>on_change(void *user, int checked)</code></td></tr>
+    <tr><td>Слайдер</td><td><code>sdge_gui_slider_init(&amp;s, x, y, w, h, value)</code></td><td><code>on_change(void *user, float value)</code> (0..1)</td></tr>
+    <tr><td>Прогресс</td><td><code>sdge_gui_progress_init(&amp;p, x, y, w, h)</code></td><td><code>sdge_gui_progress_set(&amp;p, value)</code></td></tr>
+    <tr><td>Радио</td><td><code>sdge_gui_radio_group_init(&amp;g)</code> + <code>sdge_gui_radio_init(...)</code></td><td><code>group.on_change(user, index)</code></td></tr>
+    <tr><td>Список</td><td><code>sdge_gui_listbox_init(&amp;l, x, y, w, h)</code></td><td><code>sdge_gui_listbox_add</code>, <code>on_select</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Полный пример панели</h3>
+<pre><code>typedef struct {
+    sdge_gui *gui;
+    sdge_gui_div panel;
+    sdge_gui_label title;
+    sdge_gui_button play;
+    sdge_gui_slider volume;
+    sdge_gui_checkbox fullscreen;
+    sdge_gui_input name;
+} menu;
+
+static void on_play(void *user) {
+    menu *m = (menu *)user;
+    printf("player name: %s\n", sdge_gui_input_text(&amp;m-&gt;name));
+}
+
+static void on_volume(void *user, float value) {
+    sdge_audio_set_master_volume(value);
+}
+
+static void on_fs(void *user, int checked) {
+    (void)user;
+    sdge_set_fullscreen(g_window, checked ? 1 : 0);
+}
+
+static void build_menu(menu *m) {
+    m-&gt;gui = sdge_gui_create();
+
+    sdge_gui_div_init(&amp;m-&gt;panel, 60, 60, 380, 300,
+                      (float[]){ 0.10f, 0.11f, 0.14f, 0.96f });
+    m-&gt;panel.radius = 12;
+    m-&gt;panel.border_color[3] = 1.0f;
+    m-&gt;panel.border_width = 1.0f;
+
+    sdge_gui_label_init(&amp;m-&gt;title, 84, 80, 320, 30, "Settings", 22,
+                        (float[]){ 1, 1, 1, 1 });
+
+    sdge_gui_input_init(&amp;m-&gt;name, 84, 126, 320, 38, "Player name");
+    sdge_gui_input_set_text(&amp;m-&gt;name, "Diamond");
+
+    sdge_gui_checkbox_init(&amp;m-&gt;fullscreen, 84, 180, 22,
+                           "Fullscreen", 0);
+    m-&gt;fullscreen.on_change = on_fs;
+
+    sdge_gui_slider_init(&amp;m-&gt;volume, 84, 216, 220, 24, 0.8f);
+    m-&gt;volume.on_change = on_volume;
+
+    sdge_gui_button_init(&amp;m-&gt;play, 84, 266, 160, 42, "Play",
+                         on_play, m);
+
+    sdge_gui_add(m-&gt;gui, &amp;m-&gt;panel.base);
+    sdge_gui_add(m-&gt;gui, &amp;m-&gt;title.base);
+    sdge_gui_add(m-&gt;gui, &amp;m-&gt;name.base);
+    sdge_gui_add(m-&gt;gui, &amp;m-&gt;fullscreen.base);
+    sdge_gui_add(m-&gt;gui, &amp;m-&gt;volume.base);
+    sdge_gui_add(m-&gt;gui, &amp;m-&gt;play.base);
+}</code></pre>
+
+<h3>Стилизация</h3>
+<p>
+  Каждый виджет хранит цвета прямо в структуре: <code>color</code>,
+  <code>color_hover</code>, <code>color_active</code>,
+  <code>color_disabled</code>, <code>text_color</code>,
+  <code>border_color</code>, <code>border_width</code>, <code>radius</code>,
+  <code>shadow_color</code> и т.д. Меняйте их после <code>*_init()</code>.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Состояние GUI</th><th>Функция</th></tr></thead>
+  <tbody>
+    <tr><td>Индекс виджета под мышью</td><td><code>sdge_gui_hovered(g)</code> (-1 = нет)</td></tr>
+    <tr><td>Виджет в фокусе</td><td><code>sdge_gui_focused(g)</code></td></tr>
+    <tr><td>Установить фокус</td><td><code>sdge_gui_set_focus(g, index)</code></td></tr>
+    <tr><td>Позиция мыши</td><td><code>sdge_gui_mouse_pos(g, &amp;x, &amp;y)</code></td></tr>
+    <tr><td>Размер прошлого кадра</td><td><code>sdge_gui_viewport(g, &amp;w, &amp;h)</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Свои виджеты и рисование</h3>
+<pre><code>typedef struct {
+    sdge_widget base;     /* всегда первым полем */
+    int value;
+} my_widget;
+
+static void my_draw(sdge_gui *gui, sdge_widget *w) {
+    sdge_gui_fill(gui, w-&gt;x, w-&gt;y, w-&gt;w, w-&gt;h,
+                  (float[]){ 0.2f, 0.3f, 0.5f, 1 });
+    sdge_gui_text(gui, w-&gt;x + 8, w-&gt;y + 8, "custom", 14,
+                  (float[]){ 1, 1, 1, 1 });
+}
+
+static void my_event(sdge_gui *gui, sdge_widget *w, int type, int param) {
+    if (type == SDGE_WIDGET_CLICK) ((my_widget *)w)-&gt;value++;
+}
+
+/* init */
+w.base.x = 20; w.base.y = 20; w.base.w = 120; w.base.h = 40;
+w.base.visible = 1;
+w.base.enabled = 1;
+w.base.draw = my_draw;
+w.base.event = my_event;
+sdge_gui_add(gui, &amp;w.base);</code></pre>
+
+<p>
+  События виджета: <code>SDGE_WIDGET_CLICK, HOVER, UNHOVER, KEY, CHAR,
+  FOCUS, BLUR, SCROLL, PRESS</code>.
+</p>
+
+<!-- =============================================================== AUDIO -->
+<h2 id="audio">Звук <a class="anchor" href="#audio">#</a></h2>
+
+<p>
+  Собственный программный микшер: 48 кГц, стерео, блоки по 5 мс, до 64
+  источников. Без звукового устройства движок продолжает работать (silent
+  device), поэтому аудио не ломает CI и WSL.
+</p>
+
 <pre><code>sdge_audio_init();
-// ...
-sdge_audio_terminate();</code></pre>
 
-      <p>Если устройства нет (WSL, headless) — движок продолжает работать, но без звука. Проверить:</p>
-<pre><code>if (!sdge_audio_has_device())
-    fprintf(stderr, "audio: silent mode\n");</code></pre>
+sdge_audio_buffer *music =
+    sdge_audio_load_file("assets/music.mp3");   /* .wav / .mp3 по расширению */
+sdge_audio_buffer *step =
+    sdge_audio_load_wav("assets/step.wav");
 
-      <h2>Буферы</h2>
-<pre><code>sdge_audio_buffer *b = sdge_audio_load_wav("step.wav");
-// или
-sdge_audio_buffer *b = sdge_audio_load_mp3("music.mp3");
-// или — универсально, по расширению:
-sdge_audio_buffer *b = sdge_audio_load_file("sound.ogg");  // выберет декодер
-
-// ...
-sdge_audio_free_buffer(b);</code></pre>
-
-      <p>Буфер загружается и ре-семплируется в 48 kHz один раз. Один буфер может использоваться <strong>несколькими</strong> источниками.</p>
-
-      <h2>Источники</h2>
-<pre><code>sdge_audio_source *s = sdge_audio_source_create(buffer);
-
-sdge_audio_source_set_volume(s, 0.8f);
+sdge_audio_source *s = sdge_audio_source_create(music);
 sdge_audio_source_set_loop(s, 1);
-sdge_audio_source_set_pitch(s, 1.0f);   // 1 = нормальная высота
-
+sdge_audio_source_set_volume(s, 0.7f);
 sdge_audio_source_play(s);
 
-// ...
+/* 3D-источник */
+sdge_audio_source *e = sdge_audio_source_create(step);
+sdge_audio_source_set_spatial(e, 1);
+sdge_audio_source_set_position(e, 3.0f, 0.0f, -2.0f);
+sdge_audio_source_set_distance(e, 1.0f, 30.0f);
+sdge_audio_source_play(e);
 
-sdge_audio_source_stop(s);      // сбросить в начало
-sdge_audio_source_pause(s);     // запомнить позицию
-
-sdge_audio_source_destroy(s);</code></pre>
-
-      <h2>Пространственное позиционирование</h2>
-<pre><code>sdge_audio_source_set_spatial(s, 1);
-sdge_audio_source_set_position(s, 3.0f, 0.0f, -2.0f);
-sdge_audio_source_set_velocity(s, 0.0f, 0.0f, 0.0f);
-
-// Модель затухания:
-sdge_audio_source_set_distance(s,
-    1.0f,    // ref — громкость 100%
-    50.0f);  // max — полностью затихнет</code></pre>
-
-      <h2>Слушатель</h2>
-<pre><code>sdge_audio_listener_position(cam.pos[0], cam.pos[1], cam.pos[2]);
-
-// forward + up
-sdge_audio_listener_orientation(
-    0, 0, -1,   // forward
-    0, 1, 0);   // up
-
-// Для Doppler
-sdge_audio_listener_velocity(vx, vy, vz);</code></pre>
-
-      <h2>Автоматическая синхронизация с камерой</h2>
-<pre><code>// Каждый кадр
+/* слушатель = камера */
 sdge_audio_listener_position(cam.pos[0], cam.pos[1], cam.pos[2]);
-
 float fwd[3];
 sdge_camera3d_forward(&amp;cam, fwd);
-sdge_audio_listener_orientation(fwd[0], fwd[1], fwd[2], 0, 1, 0);</code></pre>
+sdge_audio_listener_orientation(fwd[0], fwd[1], fwd[2], 0, 1, 0);
 
-      <h2>Ручной микс</h2>
-      <p>Без устройства, для тестов или записи:</p>
-<pre><code>float stereo[48000 * 2];   // 1 секунда
-sdge_audio_mix(stereo, 48000);</code></pre>
+/* конец */
+sdge_audio_source_destroy(e);
+sdge_audio_source_destroy(s);
+sdge_audio_free_buffer(step);
+sdge_audio_free_buffer(music);
+sdge_audio_terminate();</code></pre>
 
-      <div class="callout">
-        <strong>Мастер-громкость</strong>
-        <code>sdge_audio_set_master_volume(v)</code> — глобальный множитель.
-      </div>
-    </section>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Функция</th><th>Назначение</th></tr></thead>
+  <tbody>
+    <tr><td><code>sdge_audio_has_device()</code></td><td>Есть ли реальное устройство вывода.</td></tr>
+    <tr><td><code>sdge_audio_set_master_volume(v)</code></td><td>Общая громкость (0..1+).</td></tr>
+    <tr><td><code>set_pitch(s, p)</code></td><td>Высота тона, 1.0 = норма.</td></tr>
+    <tr><td><code>set_velocity(s, ...)</code></td><td>Доплеровский сдвиг.</td></tr>
+    <tr><td><code>pause / stop / playing</code></td><td>Управление воспроизведением.</td></tr>
+    <tr><td><code>sdge_audio_mix(out, frames)</code></td><td>Ручной микс без устройства (тесты, запись).</td></tr>
+  </tbody>
+</table>
+</div>
 
-    <!-- ======================== PHYSICS 2D ======================== -->
-    <section class="page" id="physics2d">
-      <h1>Физика 2D</h1>
-      <p class="lead">Rigid body: круги и OBB, sequential impulses, friction, sleep. Детерминированная — можно тестировать headless.</p>
+<div class="warn">
+  <span class="label">Поток микшера</span>
+  С реальным устройством миксер работает в отдельном потоке. Создавайте и
+  удаляйте источники из основного потока, не освобождайте буфер, пока его
+  источники живы.
+</div>
 
-      <h2>Мир</h2>
-<pre><code>sdph2_world *w = sdph2_world_create();
-sdph2_world_set_gravity(w, 0.0f, -9.81f);
-sdph2_world_set_damping(w, 0.02f, 0.05f);
-sdph2_world_set_iterations(w, 8);
+<!-- ============================================================ PHYSICS3D -->
+<h2 id="physics3d">Физика 3D <a class="anchor" href="#physics3d">#</a></h2>
 
-// Границы мира (стены)
-sdph2_world_set_bounds(w, 1, -20, -20, 20, 20);</code></pre>
+<p>
+  Сферы и ориентированные коробки (OBB), SAT, последовательные импульсы,
+  трение, restitution, сон тел. Ориентация хранится кватернионом, инерция —
+  диагональный тензор. Указатели на тела стабильны.
+</p>
 
-      <h2>Тела</h2>
-<pre><code>sdph2_body *ball = sdph2_add_circle(w,
-    0.0f, 5.0f,    // x, y
-    0.5f,          // radius
-    1.0f);         // mass (>0 = dynamic, <=0 = static)
-
-sdph2_body *floor = sdph2_add_box(w,
-    0.0f, -0.5f,   // center
-    10.0f, 0.5f,   // half extents
-    0.0f,          // mass (0 = static)
-    0.0f);         // angle (rad)</code></pre>
-
-      <div class="callout tip">
-        <strong>Стабильные указатели</strong>
-        <code>sdph2_body*</code> не меняется при добавлении других тел. Можно смело хранить в своих структурах.
-      </div>
-
-      <h2>Шаг симуляции</h2>
-<pre><code>sdph2_step(w, 1.0f / 60.0f);
-
-// Прочитать состояние
-for (int i = 0; i &lt; w-&gt;count; ++i) {
-    sdph2_body *b = w-&gt;bodies[i];
-    draw_at(b-&gt;pos[0], b-&gt;pos[1], b-&gt;angle);
-}</code></pre>
-
-      <h2>Управление телом</h2>
-<pre><code>sdph2_set_velocity(ball, 5.0f, 0.0f);
-sdph2_set_angular_velocity(ball, 2.0f);
-sdph2_set_position(ball, 0.0f, 10.0f);
-sdph2_set_angle(ball, 0.5f);
-
-sdph2_apply_impulse(ball,
-    10.0f, 0.0f,    // impulse (ix, iy)
-    0.0f, 0.5f);    // offset от центра
-
-sdph2_set_restitution(ball, 0.7f);   // упругость
-sdph2_set_friction(ball, 0.3f);</code></pre>
-
-      <h2>Сон</h2>
-      <p>Тела автоматически засыпают, если долго не двигаются. Разбудить:</p>
-<pre><code>sdph2_wake(body);
-sdph2_sleep(body);</code></pre>
-
-      <h2>Запросы</h2>
-<pre><code>// Какие тела перекрывают круг?
-sdph2_body *hits[16];
-int n = sdph2_query_circle(w, x, y, radius, hits, 16);
-
-// Точка внутри?
-if (sdph2_point_in_body(body, mouse_x, mouse_y))
-    select(body);
-
-// Суммарная кинетическая энергия (проверка стабилизации)
-float e = sdph2_energy(w);</code></pre>
-
-      <h2>Типы тел</h2>
-      <table>
-        <tr><th>Тип</th><th>Поведение</th></tr>
-        <tr><td><code>SDPH2_STATIC</code></td><td>Не двигается (пол, стены)</td></tr>
-        <tr><td><code>SDPH2_DYNAMIC</code></td><td>Управляется физикой</td></tr>
-        <tr><td><code>SDPH2_KINEMATIC</code></td><td>Двигается из кода, толкает других</td></tr>
-      </table>
-
-      <h2>Пользовательские данные</h2>
-<pre><code>ball-&gt;tag = MY_ENTITY_ID;
-// ...
-if (b-&gt;tag == PLAYER) {
-    camera_follow(b-&gt;pos);
-}</code></pre>
-    </section>
-
-    <!-- ======================== PHYSICS 3D ======================== -->
-    <section class="page" id="physics3d">
-      <h1>Физика 3D</h1>
-      <p class="lead">Полный аналог 2D: сферы и OBB, 15-осевой SAT, диагональный тензор инерции, quaternion-ориентация.</p>
-
-      <h2>Мир</h2>
 <pre><code>sdph3_world *w = sdph3_world_create();
 sdph3_world_set_gravity(w, 0.0f, -9.81f, 0.0f);
 sdph3_world_set_iterations(w, 12);
+sdph3_world_set_damping(w, 0.05f, 0.1f);
+sdph3_world_set_bounds(w, 1, -20, 0, -20, 20, 10, 20);
 
-sdph3_world_set_bounds(w, 1, -20, -20, -20, 20, 20, 20);</code></pre>
+/* статический пол: mass &lt;= 0 */
+sdph3_add_box(w, 0, -1, 0, 20, 1, 20, 0.0f);
 
-      <h2>Тела</h2>
-<pre><code>sdph3_body *ball = sdph3_add_sphere(w,
-    0, 5, 0,     // x, y, z
-    0.5f,        // radius
-    1.0f);       // mass
+/* динамическая коробка */
+sdph3_body *b = sdph3_add_box(w, 0, 5, 0, 0.5f, 0.5f, 0.5f, 1.0f);
+sdph3_set_velocity(b, 3.0f, 0.0f, 0.0f);
+sdph3_set_angle(b, 0.4f, 0.0f, 0.0f);
+sdph3_set_restitution(b, 0.2f);
+sdph3_set_friction(b, 0.7f);
 
-sdph3_body *ground = sdph3_add_box(w,
-    0, -0.5f, 0,
-    10.0f, 0.5f, 10.0f,
-    0.0f);       // mass = 0 → static
+/* шар */
+sdph3_body *ball = sdph3_add_sphere(w, 2, 6, 0, 0.5f, 2.0f);
 
-sdph3_body *cube = sdph3_add_box(w, 0, 3, 0, 0.5f, 0.5f, 0.5f, 1.0f);</code></pre>
+for (int i = 0; i &lt; 120; ++i)
+    sdph3_step(w, 1.0f / 60.0f);
 
-      <h2>Шаг</h2>
-<pre><code>sdph3_step(w, 1.0f / 60.0f);
+printf("box y = %.3f\n", b-&gt;pos[1]);
 
-// Отрисовать все тела
-for (int i = 0; i &lt; w-&gt;count; ++i) {
+sdph3_world_destroy(w);</code></pre>
+
+<h3>Тела</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Тип</th><th>Константа</th><th>Поведение</th></tr></thead>
+  <tbody>
+    <tr><td>Статическое</td><td><code>SDPH3_STATIC</code></td><td>Не двигается; <code>mass &lt;= 0</code> при создании.</td></tr>
+    <tr><td>Динамическое</td><td><code>SDPH3_DYNAMIC</code></td><td>Двигается решателем.</td></tr>
+    <tr><td>Кинематическое</td><td><code>SDPH3_KINEMATIC</code></td><td>Двигается игрой и толкает остальные.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<pre><code>/* состояние */
+sdph3_set_position(b, x, y, z);
+sdph3_set_angle(b, ax, ay, az);            /* эйлеры, радианы */
+sdph3_set_quat(b, q);                      /* кватернион (реальное состояние) */
+sdph3_get_quat(b, q);
+sdph3_set_velocity(b, vx, vy, vz);
+sdph3_set_angular_velocity(b, wx, wy, wz);
+sdph3_set_type(b, SDPH3_KINEMATIC);
+sdph3_wake(b); sdph3_sleep(b);
+
+/* импульс в точке r относительно центра масс */
+sdph3_apply_impulse(b, ix, iy, iz, rx, ry, rz);
+
+/* запросы */
+int hit = sdph3_point_in_body(b, x, y, z);
+sdph3_body *found[16];
+int n = sdph3_query_sphere(w, x, y, z, radius, found, 16);
+float e = sdph3_energy(w);
+
+/* удаление */
+sdph3_remove(w, b);</code></pre>
+
+<h3>Синхронизация с рендером</h3>
+<pre><code>for (int i = 0; i &lt; w-&gt;count; ++i) {
     sdph3_body *b = w-&gt;bodies[i];
-
-    sdg_mat4 model;
-    m4_from_trs(model, b-&gt;pos, b-&gt;quat, (sdg_vec3){1,1,1});
-
-    // ...
+    if (b-&gt;shape == SDPH3_BOX) {
+        sdg_mat4 m;
+        sdg_quat q = { b-&gt;quat[0], b-&gt;quat[1], b-&gt;quat[2], b-&gt;quat[3] };
+        m4_from_trs(m, b-&gt;pos, q, (sdg_vec3){ b-&gt;half[0]*2, b-&gt;half[1]*2, b-&gt;half[2]*2 });
+        sdgr_draw_mesh(&amp;unit_box, m, NULL, 0, color, 0, 0.6f, 1, 0);
+    }
 }</code></pre>
 
-      <h2>Ориентация</h2>
-      <p>Источник истины — кватернион. Euler — только для чтения/записи удобным способом.</p>
-<pre><code>// Задать через Euler (Rz·Ry·Rx)
-sdph3_set_angle(body, 0.0f, 0.5f, 0.0f);
+<div class="note">
+  <span class="label">Стабильные указатели</span>
+  <code>sdph3_add_*</code> возвращает указатель, который остаётся валидным
+  после добавления и удаления других тел. Это позволяет хранить
+  <code>sdph3_body *</code> в игровых объектах.
+</div>
 
-// Или напрямую quaternion
-float q[4] = {0, 0.7071f, 0, 0.7071f};
-sdph3_set_quat(body, q);
+<!-- ============================================================ PHYSICS2D -->
+<h2 id="physics2d">Физика 2D <a class="anchor" href="#physics2d">#</a></h2>
 
-// Прочитать
-float out[4];
-sdph3_get_quat(body, out);</code></pre>
+<pre><code>sdph2_world *w = sdph2_world_create();
+sdph2_world_set_gravity(w, 0.0f, -9.81f);
+sdph2_world_set_bounds(w, 1, -10, -10, 10, 10);
 
-      <h2>Импульс</h2>
-<pre><code>// Толчок в точку (rx, ry, rz) относительно центра масс
-sdph3_apply_impulse(body,
-    10.0f, 0.0f, 5.0f,    // impulse
-    0.5f, 0.5f, 0.0f);    // offset</code></pre>
+/* пол */
+sdph2_add_box(w, 0, -5, 10, 0.5f, 0.0f, 0.0f);
+/* круг */
+sdph2_body *ball = sdph2_add_circle(w, 0, 4, 0.5f, 1.0f);
+sdph2_set_velocity(ball, 2.0f, 0.0f);
+/* коробка с начальным углом */
+sdph2_body *box = sdph2_add_box(w, 0, 1, 0.5f, 0.5f, 1.0f, 0.3f);
 
-      <h2>Запросы</h2>
-<pre><code>sdph3_body *hits[16];
-int n = sdph3_query_sphere(w, x, y, z, radius, hits, 16);
+sdph2_step(w, 1.0f / 60.0f);
+sdph2_world_destroy(w);</code></pre>
 
-if (sdph3_point_in_body(body, x, y, z))
-    select(body);
+<p>
+  API повторяет 3D-версию: типы <code>SDPH2_STATIC/DYNAMIC/KINEMATIC</code>,
+  <code>set_velocity</code>, <code>set_angular_velocity</code>,
+  <code>set_position</code>, <code>set_angle</code>,
+  <code>set_restitution/friction</code>,
+  <code>apply_impulse(b, ix, iy, rx, ry)</code>,
+  <code>query_circle</code>, <code>point_in_body</code>, <code>energy</code>.
+</p>
 
-float e = sdph3_energy(w);   // стабильность</code></pre>
+<div class="tip">
+  <span class="label">2D-камера</span>
+  Для 2D-сцены используйте <code>sdge_camera2d</code>: экранные координаты —
+  пиксели с началом в левом верхнем углу; есть
+  <code>screen_to_world</code> / <code>world_to_screen</code> и
+  <code>bounds</code>.
+</div>
 
-      <h2>Типы</h2>
-      <p>Аналогично 2D: <code>SDPH3_STATIC</code>, <code>SDPH3_DYNAMIC</code>, <code>SDPH3_KINEMATIC</code>.</p>
+<!-- =============================================================== SCENES -->
+<h2 id="scenes">Сцены <a class="anchor" href="#scenes">#</a></h2>
 
-      <h2>Что под капотом</h2>
-      <ul>
-        <li><strong>SAT по 15 осям</strong>: 6 граней + 9 рёбер</li>
-        <li><strong>Face manifold</strong>: incident face клиппится reference face → до 4 контактных точек (стабильные стопки)</li>
-        <li><strong>Sequential impulses</strong> с restitution и friction</li>
-        <li><strong>Split impulse</strong>: velocity bias отдельно от position correction (нет «выстреливания» из стены)</li>
-        <li><strong>Диагональный тензор инерции</strong>: длинный бокс вращается вокруг X и Z по-разному</li>
-        <li><strong>Safety caps</strong>: max линейная/угловая скорость на выходе шага</li>
-      </ul>
-    </section>
+<p>
+  Сцена — структура с колбэками. Менеджер хранит до 32 сцен и умеет
+  переключать их с плавным затемнением.
+</p>
 
-    <!-- ======================== SCENE ======================== -->
-    <section class="page" id="scene">
-      <h1>Менеджер сцен</h1>
-      <p class="lead">Переключение между сценами с fade-переходом. Сцена — просто struct с колбэками.</p>
-
-      <h2>Структура сцены</h2>
-<pre><code>typedef struct sdge_scene {
-    const char *name;
-
-    void (*on_enter )(sdge_scene *s);
-    void (*on_exit  )(sdge_scene *s);
-    void (*on_update)(sdge_scene *s, float dt);
-    void (*on_render)(sdge_scene *s);              // 3D
-    void (*on_gui   )(sdge_scene *s, sdge_gui *g); // UI
-    void (*on_event )(sdge_scene *s, int type, int param);
-
-    void *user;
-} sdge_scene;</code></pre>
-
-      <h2>Определение сцены</h2>
 <pre><code>static void menu_enter(sdge_scene *s) { /* загрузка ресурсов */ }
-static void menu_exit (sdge_scene *s) { /* освобождение */ }
 static void menu_update(sdge_scene *s, float dt) { /* логика */ }
 static void menu_render(sdge_scene *s) { /* 3D */ }
-static void menu_gui(sdge_scene *s, sdge_gui *g) { /* UI */ }
+static void menu_gui(sdge_scene *s, sdge_gui *gui) { /* UI */ }
+static void menu_event(sdge_scene *s, int type, int param) { /* ввод */ }
 
-sdge_scene menu = {
-    .name      = "menu",
-    .on_enter  = menu_enter,
-    .on_exit   = menu_exit,
-    .on_update = menu_update,
-    .on_render = menu_render,
-    .on_gui    = menu_gui,
-};</code></pre>
+sdge_scene menu = {0};
+menu.name      = "menu";
+menu.on_enter  = menu_enter;
+menu.on_update = menu_update;
+menu.on_render = menu_render;
+menu.on_gui    = menu_gui;
+menu.on_event  = menu_event;
 
-      <h2>Менеджер</h2>
-<pre><code>sdge_scene_manager mgr;
+sdge_scene_manager mgr;
 sdge_scene_mgr_init(&amp;mgr);
-
 sdge_scene_mgr_add(&amp;mgr, &amp;menu);
 sdge_scene_mgr_add(&amp;mgr, &amp;world);
-sdge_scene_mgr_switch_now(&amp;mgr, 0);   // мгновенно</code></pre>
 
-      <h2>Кадр</h2>
-<pre><code>sdge_scene_mgr_update(&amp;mgr, dt);
+float fade_color[4] = { 0, 0, 0, 1 };
+sdge_scene_mgr_set_fade_color(&amp;mgr, fade_color);
+
+sdge_scene_mgr_switch_now(&amp;mgr, 0);   /* без перехода */
+sdge_scene_mgr_switch(&amp;mgr, 1);       /* с затемнением */
+
+/* кадр */
+sdge_scene_mgr_update(&amp;mgr, dt);
 sdge_scene_mgr_render(&amp;mgr);
-
-sdge_gui_begin(gui, w, h);
-sdge_scene_mgr_render_gui(&amp;mgr, gui);   // рисует и fade
+sdge_gui_begin(gui, width, height);
+sdge_scene_mgr_render_gui(&amp;mgr, gui);
 sdge_gui_end(gui);</code></pre>
 
-      <h2>Переход с fade</h2>
-<pre><code>sdge_scene_mgr_switch(&amp;mgr, 1);   // 0.45 сек fade out → fade in
+<p>
+  События: <code>SDGE_SCENE_EVENT_KEY</code> (param = код клавиши),
+  <code>CHAR</code>, <code>CLICK</code>, <code>RESIZE</code> (param = ширина),
+  <code>CUSTOM</code> (param = ваше значение). Состояние перехода:
+  <code>sdge_scene_mgr_transitioning()</code> и
+  <code>sdge_scene_mgr_fade()</code>.
+</p>
 
-// Настройка:
-mgr.fade_speed = 0.3f;   // секунд
+<!-- =============================================================== ASSETS -->
+<h2 id="assets">Ассеты, арены и файлы <a class="anchor" href="#assets">#</a></h2>
 
-sdge_scene_mgr_set_fade_color(&amp;mgr, (float[4]){0, 0, 0, 1});
+<p>
+  <code>sdga_arena</code> — блочный аллокатор: выделения никогда не
+  перемещаются, поэтому указатели остаются валидными при росте арены.
+  Одна модель glTF живёт в одной арене: загрузка — несколько malloc,
+  освобождение — один вызов.
+</p>
 
-// Проверить статус:
-if (sdge_scene_mgr_transitioning(&amp;mgr))
-    disable_input();
+<pre><code>sdga_arena arena;
+sdga_arena_init(&amp;arena, 64 * 1024);
 
-float t = sdge_scene_mgr_fade(&amp;mgr);   // 0..1</code></pre>
+char *name = sdga_strdup(&amp;arena, "player");
+float *data = (float *)sdga_alloc(&amp;arena, 1024 * sizeof(float));
+void *aligned = sdga_alloc_aligned(&amp;arena, 256, 64);
 
-      <h2>События</h2>
-<pre><code>sdge_scene_mgr_event(&amp;mgr, SDGE_SCENE_EVENT_KEY, key);</code></pre>
+printf("used: %zu bytes in %zu blocks\n",
+       sdga_arena_used(&amp;arena), arena.block_count);
 
-      <table>
-        <tr><th>Событие</th><th>param</th></tr>
-        <tr><td><code>SDGE_SCENE_EVENT_KEY</code></td><td>key code</td></tr>
-        <tr><td><code>SDGE_SCENE_EVENT_CHAR</code></td><td>codepoint</td></tr>
-        <tr><td><code>SDGE_SCENE_EVENT_CLICK</code></td><td>—</td></tr>
-        <tr><td><code>SDGE_SCENE_EVENT_RESIZE</code></td><td>ширина</td></tr>
-        <tr><td><code>SDGE_SCENE_EVENT_CUSTOM</code></td><td>ваше значение</td></tr>
-      </table>
+sdga_arena_destroy(&amp;arena);   /* освобождает всё сразу */</code></pre>
 
-      <div class="callout tip">
-        <strong>Fade бесплатный</strong>
-        Прямоугольник fade рисуется через UI-шейдер — тот же, что и весь интерфейс. Дополнительного draw call нет.
-      </div>
-    </section>
-
-    <!-- ======================== EDITOR ======================== -->
-    <section class="page" id="editor">
-      <h1>Редактор сцен</h1>
-      <p class="lead">Встроенный редактор glTF-моделей: иерархия, трансформация, текстуры, экспорт обратно в glTF.</p>
-
-      <h2>Жизненный цикл</h2>
-<pre><code>sdge_editor *ed = sdge_editor_create();
-
-if (sdge_editor_open(ed, "assets/hero.glb") != 0)
-    fprintf(stderr, "cannot open: %s\n", sdge_editor_error(ed));
-
-// ...
-
-sdge_editor_close(ed);
-sdge_editor_destroy(ed);</code></pre>
-
-      <h2>Иерархия</h2>
-<pre><code>int n = sdge_editor_item_count(ed);
-for (int i = 0; i &lt; n; ++i) {
-    printf("%*s%s%s\n",
-        sdge_editor_item_depth(ed, i) * 2, "",
-        sdge_editor_item_name(ed, i),
-        sdge_editor_item_has_mesh(ed, i) ? " [mesh]" : "");
-}</code></pre>
-
-      <h2>Выделение</h2>
-<pre><code>sdge_editor_select(ed, item_idx);
-int sel = sdge_editor_selected(ed);
-int node = sdge_editor_selected_node(ed);</code></pre>
-
-      <h2>Инструменты</h2>
-<pre><code>sdge_editor_set_tool(ed, SDGE_EDIT_MOVE);
-sdge_editor_set_axis(ed, SDGE_EDIT_AXIS_Y);</code></pre>
-
-      <table>
-        <tr><th>Инструмент</th><th>Что делает</th></tr>
-        <tr><td><code>SDGE_EDIT_SELECT</code></td><td>Выбор ноды</td></tr>
-        <tr><td><code>SDGE_EDIT_MOVE</code></td><td>Перемещение</td></tr>
-        <tr><td><code>SDGE_EDIT_ROTATE</code></td><td>Вращение</td></tr>
-        <tr><td><code>SDGE_EDIT_SCALE</code></td><td>Масштаб</td></tr>
-      </table>
-
-      <p>Горячие клавиши: <code>1</code>/<code>2</code>/<code>3</code>/<code>4</code> — инструмент, <code>X</code>/<code>Y</code>/<code>Z</code> — ось, <code>Esc</code> — свободно.</p>
-
-      <h2>Трансформация</h2>
-<pre><code>float t[3], r[4], s[3];
-sdge_editor_get_transform(ed, t, r, s);
-
-sdg_vec3 new_pos = {1, 2, 3};
-sdge_editor_set_transform(ed, new_pos, r, s);</code></pre>
-
-      <h2>Камера и viewport</h2>
-<pre><code>sdge_editor_set_viewport(ed, 0, 0, 1280, 720);
-sdge_editor_orbit(ed, /*yaw*/ 0.5f, /*pitch*/ 0.4f, /*dist*/ 5.0f);
-sdge_editor_update_camera(ed, 1280, 720);
-sdge_editor_focus(ed);   // приблизить к модели</code></pre>
-
-      <h2>Ввод (из колбэков окна)</h2>
-<pre><code>sdge_editor_mouse_move(ed, x, y);
-sdge_editor_mouse_button(ed, btn, action);
-sdge_editor_scroll(ed, dy);
-sdge_editor_key(ed, key);</code></pre>
-
-      <h2>Отрисовка</h2>
-<pre><code>sdgr_begin_frame(clear);
-sdge_editor_render(ed);   // рисует модель + гизмо
-sdgr_end_frame();</code></pre>
-
-      <h2>Текстуры</h2>
-<pre><code>// Наложить
-sdge_editor_apply_texture(ed, item, "assets/wood.png", SDGE_EDIT_TEX_BASE);
-
-// Убрать
-sdge_editor_clear_texture(ed, item, SDGE_EDIT_TEX_BASE);
-
-// Узнать, что стоит
-const char *path = sdge_editor_texture_path(ed, node, SDGE_EDIT_TEX_BASE);</code></pre>
-
-      <table>
-        <tr><th>Слот</th><th>Константа</th></tr>
-        <tr><td>Base color</td><td><code>SDGE_EDIT_TEX_BASE</code></td></tr>
-        <tr><td>Metallic-Roughness</td><td><code>SDGE_EDIT_TEX_METALLIC</code></td></tr>
-        <tr><td>Normal</td><td><code>SDGE_EDIT_TEX_NORMAL</code></td></tr>
-        <tr><td>Occlusion</td><td><code>SDGE_EDIT_TEX_OCCLUSION</code></td></tr>
-        <tr><td>Emissive</td><td><code>SDGE_EDIT_TEX_EMISSIVE</code></td></tr>
-      </table>
-
-      <h2>Экспорт</h2>
-<pre><code>if (sdge_editor_export(ed, "out/scene.gltf") != 0)
-    fprintf(stderr, "export failed: %s\n", sdge_editor_error(ed));</code></pre>
-
-      <p>Запишет <code>scene.gltf</code> + <code>scene.bin</code>, текстуры встроит как data-URI. Формат — обычный glTF 2.0, открывается в любом просмотрщике.</p>
-
-      <h2>Полный цикл</h2>
-<pre><code>sdge_editor *ed = sdge_editor_create();
-sdge_editor_open(ed, "assets/hero.glb");
-sdge_editor_set_viewport(ed, 0, 0, w, h);
-sdge_editor_update_camera(ed, w, h);
-
-while (!done) {
-    sdge_poll_events();
-
-    sdgr_begin_frame(NULL);
-    sdge_editor_render(ed);
-    sdgr_end_frame();
-
-    sdge_swap_buffers(win);
+<pre><code>unsigned char *bytes;
+size_t size;
+if (sdga_read_file("assets/data.bin", &amp;bytes, &amp;size) == 0) {
+    /* ... */
+    free(bytes);               /* обычный malloc */
 }
 
-sdge_editor_export(ed, "assets/hero_edited.gltf");
+sdga_wav wav;
+if (sdga_load_wav("assets/sound.wav", &amp;wav) == 0) {
+    /* wav.samples — interleaved float [-1..1] */
+    sdga_free_wav(&amp;wav);
+}</code></pre>
+
+<div class="note">
+  <span class="label">Время жизни</span>
+  Память модели принадлежит <code>sdge_model</code> / <code>sdge_gltf_model</code>.
+  Не сохраняйте указатели на строки внутри модели после
+  <code>sdge_model_destroy()</code>.
+</div>
+
+<!-- =============================================================== EDITOR -->
+<h2 id="editor">Редактор сцен <a class="anchor" href="#editor">#</a></h2>
+
+<p>
+  Редактор — обычный модуль движка и отдельное приложение. Он открывает
+  glTF/GLB, показывает иерархию, позволяет двигать/вращать/масштабировать
+  узлы, накладывать текстуры и экспортировать результат.
+</p>
+
+<pre><code>python build.py editor
+build/windows/release/sdge_editor.exe Subjects/character.glb
+
+# ключи
+sdge_editor [model.glb|model.gltf] [--out out.gltf] [--tex image.png] [--selftest]</code></pre>
+
+<h3>Управление</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Действие</th><th>Как</th></tr></thead>
+  <tbody>
+    <tr><td>Выбрать узел</td><td>ЛКМ по модели или по строке дерева</td></tr>
+    <tr><td>Инструменты</td><td><kbd>1</kbd> select, <kbd>2</kbd> move, <kbd>3</kbd> rotate, <kbd>4</kbd> scale</td></tr>
+    <tr><td>Ограничить ось</td><td><kbd>X</kbd>, <kbd>Y</kbd>, <kbd>Z</kbd>; <kbd>Esc</kbd> — свободно</td></tr>
+    <tr><td>Камера</td><td>ПКМ-перетаскивание, колесо — зум, <kbd>F</kbd> — вписать модель</td></tr>
+    <tr><td>Сохранить</td><td>кнопка Save (пишет <code>.gltf</code> + <code>.bin</code>)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>API</h3>
+<pre><code>sdge_editor *ed = sdge_editor_create();
+if (sdge_editor_open(ed, "assets/character.glb") == 0) {
+    int items = sdge_editor_item_count(ed);
+    for (int i = 0; i &lt; items; ++i)
+        printf("%*s%s\n", sdge_editor_item_depth(ed, i) * 2, "",
+               sdge_editor_item_name(ed, i));
+
+    sdge_editor_select(ed, 0);
+
+    float t[3], r[4], s[3];
+    sdge_editor_get_transform(ed, t, r, s);
+    t[1] += 0.5f;
+    sdge_editor_set_transform(ed, t, r, s);
+
+    sdge_editor_apply_texture(ed, 0, "assets/tex.png", SDGE_EDIT_TEX_BASE);
+
+    sdge_editor_export(ed, "out/edited.gltf");
+}
 sdge_editor_destroy(ed);</code></pre>
-    </section>
 
-    <!-- ======================== FOOTER ======================== -->
-    <div class="page-footer">
-      <div>Silver Diamond Game Engine 0.2 · Документация</div>
-      <div>
-        <a href="index.html">← На главную</a> ·
-        <a href="#overview" data-nav="overview">↑ В начало</a>
-      </div>
-    </div>
+<div class="warn">
+  <span class="label">Экспорт</span>
+  Анимации и скины пока <b>не пишутся</b> в экспорт — в модели они остаются
+  исходными. Текстуры встраиваются как data-URI, результат самодостаточен.
+</div>
 
-  </main>
+<!-- ============================================================ PACKAGING -->
+<h2 id="packaging">Сборка и упаковка игры <a class="anchor" href="#packaging">#</a></h2>
+
+<h3>Рекомендуемая структура проекта</h3>
+<pre><code>MyGame/
+├── src/
+│   └── main.c
+├── assets/
+│   ├── character.glb
+│   ├── textures/
+│   ├── font.ttf
+│   └── music.mp3
+├── sdk/                 # скопированный API/ (include + lib)
+│   ├── include/
+│   └── lib/windows/release/
+│       ├── libsdge.a
+│       └── sdge.dll
+└── build.bat / Makefile</code></pre>
+
+<h3>Windows: простая сборка</h3>
+<pre><code>gcc -std=c99 -O2 -DSDGE_USE_DLL -I sdk/include ^
+    src/main.c -o build/MyGame.exe ^
+    sdk/lib/windows/release/libsdge.a
+
+copy sdk\lib\windows\release\sdge.dll build\
+xcopy /E /I assets build\assets</code></pre>
+
+<p>Для отладки замените <code>release</code> на <code>debug</code> и добавьте <code>-g</code>.</p>
+
+<h3>Linux: простая сборка</h3>
+<pre><code>gcc -std=gnu99 -O2 -DSDGE_USE_DLL -I sdk/include \
+    src/main.c -o build/MyGame \
+    -Lsdk/lib/linux/release -lsdge -Wl,-rpath,'$ORIGIN' -lm
+
+cp sdk/lib/linux/release/libsdge.so build/
+cp -r assets build/assets</code></pre>
+
+<h3>Что положить рядом с exe</h3>
+<ul>
+  <li><code>sdge.dll</code> — обязательно (Windows);</li>
+  <li><code>libsdge.so</code> — обязательно (Linux, если нет системной установки);</li>
+  <li>папка <code>assets/</code> — модели, текстуры, звуки, шрифты;</li>
+  <li>для MinGW-сборки иногда нужны runtime-DLL компилятора (<code>libgcc_s_seh-1.dll</code>, <code>libwinpthread-1.dll</code>), если они не входят в систему.</li>
+</ul>
+
+<div class="tip">
+  <span class="label">Совет</span>
+  Используйте <code>SDGE_USE_DLL</code> при компиляции игры. Без него
+  заголовки не помечают функции как <code>dllimport</code>, и линковка на
+  Windows может выбрать неверный путь.
+</div>
+
+<!-- ================================================================ LIMITS -->
+<h2 id="limits">Ограничения и подводные камни <a class="anchor" href="#limits">#</a></h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Что</th><th>Ограничение</th></tr></thead>
+  <tbody>
+    <tr><td>Точечные источники света</td><td>8 (<code>SDGR_MAX_POINT_LIGHTS</code>)</td></tr>
+    <tr><td>Суставы скина</td><td>128 (<code>SDGR_MAX_JOINTS</code>)</td></tr>
+    <tr><td>Текстурные слоты материала</td><td>5</td></tr>
+    <tr><td>Звуковые источники</td><td>64</td></tr>
+    <tr><td>GUI-виджеты</td><td>64</td></tr>
+    <tr><td>Сцены</td><td>32</td></tr>
+    <tr><td>Face'ы шрифта</td><td>8</td></tr>
+    <tr><td>Режим примитивов</td><td>только triangles (<code>mode 4</code>)</td></tr>
+    <tr><td>Морф-таргеты / sparse accessor'ы / Draco / meshopt</td><td>не поддерживаются</td></tr>
+    <tr><td>Тени, постобработка, deferred</td><td>нет (forward, PBR-lite)</td></tr>
+    <tr><td>Смешивание анимаций</td><td>вручную, один плеер = одна анимация</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Конвенции</h3>
+<ul>
+  <li>Правая система координат, <b>Y вверх</b>, <b>−Z вперёд</b>.</li>
+  <li><code>sdg_mat4</code> — column-major, без transpose при загрузке в GL.</li>
+  <li>Экранные координаты GUI/UI — пиксели, начало в <b>левом верхнем</b> углу.</li>
+  <li>Углы камеры и вращения — радианы (кроме <code>fov_deg</code>).</li>
+</ul>
+
+<h3>Производительность</h3>
+<ul>
+  <li>Не создавайте и не уничтожайте модели/текстуры каждый кадр — кэшируйте.</li>
+  <li>Отсечение по фрустуму уже встроено в <code>sdge_model_draw()</code>; дорогие модели лучше делить на несколько узлов.</li>
+  <li>Один вызов <code>sdgr_draw_mesh</code> на примитив; батчинг материалов не автоматический.</li>
+  <li>Физику обновляйте фиксированным шагом; не передавайте <code>dt = 0</code> или огромный <code>dt</code>.</li>
+  <li>Ограничивайте <code>dt</code> сверху (например, 0.1 с) после пауз/перетаскивания окна.</li>
+</ul>
+
+<!-- ======================================================= TROUBLESHOOTING -->
+<h2 id="troubleshooting">Траблшутинг <a class="anchor" href="#troubleshooting">#</a></h2>
+
+<h3>Модель не загружается</h3>
+<ul>
+  <li>Проверьте путь: он относителен рабочей директории, а не exe.</li>
+  <li>GL-контекст должен быть создан и текущим до <code>sdge_model_load()</code>.</li>
+  <li>Сообщение <code>gltf: bad JSON</code> в старых версиях означало лимит токенов; обновите движок — теперь JSON считается точно и буфер выделяется динамически.</li>
+  <li>Если в консоли <code>requires compressed geometry (KHR_draco_mesh_compression)</code> — геометрия пустая; пересохраните модель без Draco.</li>
+  <li>Для <code>.gltf</code> с внешними файлами убедитесь, что <code>.bin</code> и текстуры лежат рядом или по указанным относительным путям.</li>
+</ul>
+
+<h3>Чёрный экран</h3>
+<ul>
+  <li>Вызван ли <code>sdgr_set_camera()</code> до рисования?</li>
+  <li>Есть ли <code>sdgr_begin_frame()</code> / <code>sdgr_end_frame()</code>?</li>
+  <li>Камера не смотрит в пустоту: проверьте <code>center</code>, <code>dist</code>, <code>znear/zfar</code>.</li>
+  <li>Есть ли свет? Без ambient/sun модель может быть почти чёрной.</li>
+  <li>Модель может быть очень большой или очень маленькой — впишите её в кадр по bounding sphere.</li>
+</ul>
+
+<h3>GUI не реагирует</h3>
+<ul>
+  <li>Проброшены ли события окна в <code>sdge_gui_*</code>?</li>
+  <li>Виджет добавлен через <code>sdge_gui_add()</code>?</li>
+  <li><code>base.visible</code> и <code>base.enabled</code> равны 1?</li>
+  <li>Виджеты рисуются после 3D-сцены и после <code>sdgr_end_frame()</code>?</li>
+</ul>
+
+<h3>Текст не виден</h3>
+<ul>
+  <li><code>sdui_init()</code> вызван после создания GL-контекста?</li>
+  <li>Шрифт загружен и передан в <code>sdui_set_font()</code>; не освобождён ли он раньше времени?</li>
+  <li>Цвет текста не совпадает с фоном и alpha &gt; 0?</li>
+</ul>
+
+<h3>Ошибка линковки</h3>
+<ul>
+  <li><code>undefined reference to sdge_*</code> — добавьте <code>-DSDGE_USE_DLL</code> и import-библиотеку <code>libsdge.a</code>; порядок: сначала исходники/объекты, потом библиотека.</li>
+  <li>На Linux — <code>-lsdge</code> и <code>-lm</code>, а также <code>-Wl,-rpath,'$ORIGIN'</code>.</li>
+  <li>При запуске «sdge.dll not found» — положите DLL рядом с exe или в <code>PATH</code>.</li>
+</ul>
+
+<h3>Звука нет</h3>
+<ul>
+  <li><code>sdge_audio_has_device()</code> — есть ли устройство (в WSL/CI его может не быть).</li>
+  <li>Проверьте <code>sdge_audio_get_master_volume()</code> и громкость источника.</li>
+  <li>Для 3D-источника вызовите <code>sdge_audio_source_set_spatial(s, 1)</code> и задайте позицию слушателя.</li>
+</ul>
+
+<h3>Физика «проваливается»</h3>
+<ul>
+  <li>Пол/стены должны быть статическими (<code>mass &lt;= 0</code>) и достаточно большими.</li>
+  <li>Увеличьте <code>sdph3_world_set_iterations(w, 12..20)</code>.</li>
+  <li>Не используйте слишком большой <code>dt</code>: держите 1/60 и фиксированный шаг.</li>
+  <li>Проверьте <code>sdph3_world_set_bounds()</code>: границы могут отбрасывать тела назад.</li>
+</ul>
+
+<!-- ============================================================== LICENSE -->
+<h2 id="license">Лицензии и авторство <a class="anchor" href="#license">#</a></h2>
+
+<p>
+  Код движка принадлежит студии <b>Selenium ground</b>. Сторонние компоненты:
+</p>
+<ul>
+  <li><b>glad</b> — MIT (загрузчик OpenGL);</li>
+  <li><b>minimp3</b> — CC0 (декодер MP3);</li>
+  <li><b>stb_image.h</b> — Public Domain / MIT (декодер изображений).</li>
+</ul>
+<p>
+  Шрифты и ассеты, которые вы кладёте в проект, распространяются по их
+  собственным лицензиям — проверяйте перед релизом.
+</p>
+
+<footer>
+  Silver Diamond Game Engine · документация для разработчиков игр ·
+  версия движка 0.4 · C99 + OpenGL 3.3+<br>
+  Актуальный API всегда в <code>API/include/sdge.h</code> и заголовках модулей.
+</footer>
+
+</main>
 </div>
 
 <script>
-(function(){
-  // ---------- tab switching ----------
-  const items = document.querySelectorAll('.side-item');
-  const pages = document.querySelectorAll('.page');
-  const content = document.querySelector('main.content');
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+    var targets = links
+      .map(function (a) { return document.querySelector(a.getAttribute('href')); })
+      .filter(Boolean);
+    if (!targets.length || !('IntersectionObserver' in window)) return;
 
-  function show(id){
-    pages.forEach(p => p.classList.toggle('active', p.id === id));
-    items.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
-    if (history.replaceState) history.replaceState(null, '', '#' + id);
-    // scroll content to top
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  }
+    var visible = new Set();
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) visible.add(e.target.id);
+        else visible.delete(e.target.id);
+      });
+      var current = null;
+      for (var i = 0; i < targets.length; ++i) {
+        if (visible.has(targets[i].id)) { current = targets[i].id; break; }
+      }
+      links.forEach(function (a) {
+        a.classList.toggle('active',
+          current !== null && a.getAttribute('href') === '#' + current);
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
 
-  items.forEach(btn => btn.addEventListener('click', () => show(btn.dataset.tab)));
-
-  // top-nav links with data-nav
-  document.querySelectorAll('[data-nav]').forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      show(a.dataset.nav);
-    });
-  });
-
-  // initial route
-  const initial = (location.hash || '#overview').slice(1);
-  if (document.getElementById(initial)) show(initial);
-  else show('overview');
-
-  // ---------- theme toggle (same as index) ----------
-  const KEY = 'sdge-theme';
-  const btn = document.getElementById('themeBtn');
-  const root = document.documentElement;
-  const saved = localStorage.getItem(KEY);
-  if (saved) root.setAttribute('data-theme', saved);
-  btn.addEventListener('click', () => {
-    const cur = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    root.setAttribute('data-theme', cur);
-    localStorage.setItem(KEY, cur);
-  });
-
-  // ---------- keyboard arrows on sidebar ----------
-  // (optional QoL: not needed for MVP)
-})();
+    targets.forEach(function (t) { observer.observe(t); });
+  })();
 </script>
 </body>
 </html>

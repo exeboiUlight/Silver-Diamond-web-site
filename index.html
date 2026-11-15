@@ -4,235 +4,237 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Silver Diamond Game Engine — лёгкий движок на C99</title>
-<meta name="description" content="Silver Diamond Game Engine — компактный кроссплатформенный игровой движок на C99 с PBR-lite рендером, glTF 2.0, физикой 2D/3D и встроенным редактором сцен.">
+<meta name="description" content="Silver Diamond Game Engine — компактный кроссплатформенный игровой движок на C99: PBR-lite рендер, текстуры, glTF 2.0 со скелетной анимацией, физика 2D/3D, spatial-аудио и редактор сцен.">
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="shortcut icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <style>
   :root{
-    --bg:#0e1016; --bg2:#141822; --bg3:#1c2230; --fg:#e8ebf2;
-    --fg2:#a4acbd; --muted:#6a7386;
-    --acc:#6ea8ff; --acc2:#8affc1; --gold:#f0c86a; --warn:#ffb86b;
-    --line:#242a3a; --radius:14px; --radius-sm:8px;
+    --bg:#000000; --bg2:#0a0a0a; --bg3:#1b1b1b;
+    --surface:#262626; --surface2:#303030;
+    --fg:#ffffff; --fg2:#a6a6a6; --muted:#727272;
+    --acc:#3358d4; --acc-hi:#4b6fe6; --acc-text:#8ab4f8;
+    --green:#56d364; --gold:#e0b341; --warn:#ffb86b;
+    --line:#333333; --code-bg:#111111;
+    --radius:16px; --radius-sm:10px; --pill:999px;
+    --font:Inter,"Inter Fallback",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
     --mono:"JetBrains Mono","Fira Code",Consolas,Menlo,monospace;
-    --shadow: 0 10px 40px rgba(0,0,0,.35);
+    --shadow:0 24px 70px rgba(0,0,0,.55);
   }
   [data-theme="light"]{
-    --bg:#f6f7fb; --bg2:#ffffff; --bg3:#eef1f7; --fg:#12151c;
-    --fg2:#4b5265; --muted:#7c8498;
-    --acc:#2b6fe6; --acc2:#0f9b5c; --gold:#b7860b; --warn:#c26a11;
-    --line:#dfe3ee;
-    --shadow: 0 10px 40px rgba(30,40,80,.10);
+    --bg:#ffffff; --bg2:#f5f5f5; --bg3:#ececec;
+    --surface:#f5f5f5; --surface2:#eaeaea;
+    --fg:#000000; --fg2:#555555; --muted:#767676;
+    --acc:#3358d4; --acc-hi:#274bb8; --acc-text:#274bb8;
+    --green:#1a9e46; --gold:#a8790a; --warn:#b3610f;
+    --line:#e4e4e4; --code-bg:#f6f6f6;
+    --shadow:0 24px 70px rgba(20,30,60,.12);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
-    background:var(--bg); color:var(--fg); font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif;
+    background:var(--bg); color:var(--fg); font:16px/1.6 var(--font);
     -webkit-font-smoothing:antialiased;
   }
-  a{color:var(--acc); text-decoration:none}
+  a{color:var(--acc-text); text-decoration:none}
   a:hover{text-decoration:underline}
   code,pre{font-family:var(--mono)}
-  code{background:var(--bg3); padding:2px 7px; border-radius:6px; color:var(--acc2); font-size:.9em}
-  pre{background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:16px 18px; overflow:auto; font-size:14px; line-height:1.55}
+  code{background:var(--bg3); padding:2px 7px; border-radius:6px; color:var(--fg); font-size:.9em}
+  pre{background:var(--code-bg); border:1px solid var(--line); border-radius:var(--radius-sm); padding:16px 18px; overflow:auto; font-size:14px; line-height:1.55}
 
   /* ---------- topbar ---------- */
   header.top{
     position:sticky; top:0; z-index:50;
-    background:color-mix(in srgb, var(--bg) 85%, transparent);
-    backdrop-filter:saturate(140%) blur(10px);
-    -webkit-backdrop-filter:saturate(140%) blur(10px);
+    background:color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter:saturate(140%) blur(14px);
+    -webkit-backdrop-filter:saturate(140%) blur(14px);
     border-bottom:1px solid var(--line);
   }
   .topbar{
-    max-width:1180px; margin:0 auto; padding:14px 22px;
+    max-width:1240px; margin:0 auto; padding:16px 24px;
     display:flex; align-items:center; gap:18px;
   }
-  .logo{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:600; letter-spacing:-.2px; font-size:17px}
   .logo img.mark{
-    width:28px; height:28px; border-radius:8px; object-fit:contain;
+    width:30px; height:30px; border-radius:8px; object-fit:contain;
     display:block;
   }
-  nav.links{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; align-items:center}
+  nav.links{display:flex; gap:4px; flex-wrap:wrap; margin-left:auto; align-items:center}
   nav.links a{
-    color:var(--fg2); padding:6px 10px; border-radius:8px; font-size:14px;
+    color:var(--fg2); padding:9px 14px; border-radius:var(--pill); font-size:14.5px;
   }
-  nav.links a:hover{background:var(--bg3); color:var(--fg); text-decoration:none}
+  nav.links a:hover{background:var(--surface); color:var(--fg); text-decoration:none}
   nav.links a.nav-cta{
-    color:var(--acc);
-    border:1px solid color-mix(in srgb, var(--acc) 45%, transparent);
-    background:color-mix(in srgb, var(--acc) 10%, transparent);
-    font-weight:600;
+    color:#fff; background:var(--acc); font-weight:600;
   }
-  nav.links a.nav-cta:hover{
-    color:var(--fg);
-    border-color:var(--acc);
-    background:color-mix(in srgb, var(--acc) 20%, transparent);
-  }
+  nav.links a.nav-cta:hover{background:var(--acc-hi); color:#fff}
   .theme-btn{
-    border:1px solid var(--line); background:var(--bg2); color:var(--fg2);
-    width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:16px; line-height:1;
+    border:1px solid var(--line); background:var(--surface); color:var(--fg2);
+    width:38px; height:38px; border-radius:var(--pill); cursor:pointer; font-size:16px; line-height:1;
   }
   .theme-btn:hover{color:var(--fg); border-color:var(--acc)}
 
   /* ---------- hero ---------- */
-  .hero{padding:80px 22px 40px; max-width:1180px; margin:0 auto}
-  .hero-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:56px; align-items:center}
+  .hero{padding:96px 24px 48px; max-width:1240px; margin:0 auto}
+  .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center}
   .badge{
     display:inline-flex; align-items:center; gap:8px;
-    font-size:12px; letter-spacing:.6px; text-transform:uppercase; color:var(--acc2);
-    border:1px solid color-mix(in srgb, var(--acc2) 45%, transparent);
-    background:color-mix(in srgb, var(--acc2) 8%, transparent);
-    padding:5px 12px; border-radius:999px; margin-bottom:22px;
+    font-size:12px; letter-spacing:1.4px; text-transform:uppercase; color:var(--fg2);
+    border:1px solid var(--line);
+    background:var(--surface);
+    padding:7px 14px; border-radius:var(--pill); margin-bottom:24px;
   }
-  .badge::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--acc2)}
-  h1{font-size:clamp(32px,4.2vw,54px); line-height:1.1; margin:0 0 18px; letter-spacing:-.5px}
+  .badge::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--acc-text)}
+  h1{font-size:clamp(38px,6vw,76px); line-height:1.02; margin:0 0 20px; letter-spacing:-.03em; font-weight:500}
   h1 span{
-    background:linear-gradient(120deg, var(--acc), var(--acc2) 60%, var(--gold));
+    background:linear-gradient(100deg, var(--acc-text), #b98cff 70%, var(--gold));
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
-  .lead{font-size:clamp(15px,1.4vw,18px); color:var(--fg2); margin:0 0 26px; max-width:56ch}
+  .lead{font-size:clamp(16px,1.5vw,19px); color:var(--fg2); margin:0 0 30px; max-width:56ch}
   .cta{display:flex; gap:12px; flex-wrap:wrap}
   .btn{
-    display:inline-flex; align-items:center; gap:8px;
-    padding:11px 20px; border-radius:10px; font-weight:600; font-size:15px;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:0 26px; height:50px; border-radius:var(--pill); font-weight:600; font-size:15.5px;
     border:1px solid transparent; cursor:pointer; font-family:inherit;
   }
   .btn.primary{
-    background:var(--acc); color:#fff;
+    background:#ffffff; color:#000000;
   }
-  .btn.primary:hover{filter:brightness(1.08); text-decoration:none}
+  [data-theme="light"] .btn.primary{background:#000000; color:#ffffff}
+  .btn.primary:hover{opacity:.88; text-decoration:none}
   .btn.ghost{
-    border-color:var(--line); background:var(--bg2); color:var(--fg);
+    border-color:transparent; background:var(--surface); color:var(--fg);
   }
-  .btn.ghost:hover{border-color:var(--acc); text-decoration:none}
+  .btn.ghost:hover{background:var(--surface2); text-decoration:none}
 
   .hero-card{
-    background:linear-gradient(180deg, var(--bg2), var(--bg));
+    background:var(--surface);
     border:1px solid var(--line); border-radius:var(--radius);
     box-shadow:var(--shadow); overflow:hidden; font-size:13px;
   }
   .hero-card .title{
-    padding:10px 14px; border-bottom:1px solid var(--line); color:var(--fg2);
+    padding:12px 16px; border-bottom:1px solid var(--line); color:var(--fg2);
     display:flex; gap:8px; align-items:center; font-size:12px;
   }
   .hero-card .title .dot{width:10px; height:10px; border-radius:50%}
-  .hero-card .title .dot.r{background:#ff6b6b}
-  .hero-card .title .dot.y{background:#ffcc55}
-  .hero-card .title .dot.g{background:#4ade80}
+  .hero-card .title .dot.r{background:#ff5f57}
+  .hero-card .title .dot.y{background:#febc2e}
+  .hero-card .title .dot.g{background:#28c840}
   .hero-card pre{margin:0; border:none; border-radius:0; background:transparent}
 
   /* ---------- sections ---------- */
-  section{padding:72px 22px}
+  section{padding:88px 24px}
   section.alt{background:var(--bg2); border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
-  .wrap{max-width:1180px; margin:0 auto}
-  h2{font-size:clamp(24px,2.6vw,32px); margin:0 0 12px; letter-spacing:-.3px}
-  .sub{color:var(--fg2); margin:0 0 34px; max-width:64ch}
+  .wrap{max-width:1240px; margin:0 auto}
+  h2{font-size:clamp(26px,3.2vw,40px); margin:0 0 14px; letter-spacing:-.02em; font-weight:500}
+  .sub{color:var(--fg2); margin:0 0 40px; max-width:64ch; font-size:16.5px}
 
   /* advantages grid */
-  .grid{display:grid; gap:18px}
+  .grid{display:grid; gap:16px}
   .grid.g3{grid-template-columns:repeat(3,1fr)}
   .grid.g2{grid-template-columns:repeat(2,1fr)}
   .card{
-    background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius);
-    padding:22px; display:flex; flex-direction:column; gap:10px;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:26px; display:flex; flex-direction:column; gap:12px;
+    transition:border-color .2s, transform .2s;
   }
+  .card:hover{border-color:color-mix(in srgb, var(--fg) 28%, transparent); transform:translateY(-2px)}
   .card .icon{
-    width:38px; height:38px; border-radius:10px;
-    background:color-mix(in srgb, var(--acc) 14%, transparent);
-    border:1px solid color-mix(in srgb, var(--acc) 40%, transparent);
-    display:flex; align-items:center; justify-content:center; font-size:18px;
+    width:44px; height:44px; border-radius:12px;
+    background:color-mix(in srgb, var(--acc-text) 16%, transparent);
+    border:1px solid color-mix(in srgb, var(--acc-text) 30%, transparent);
+    display:flex; align-items:center; justify-content:center; font-size:20px;
   }
-  .card h3{margin:2px 0 0; font-size:16px}
+  .card h3{margin:2px 0 0; font-size:17px; font-weight:600}
   .card p{margin:0; color:var(--fg2); font-size:14.5px}
   .card ul{margin:6px 0 0; padding-left:18px; color:var(--fg2); font-size:14.5px}
   .card li{margin:3px 0}
 
   /* about author */
   .author{
-    display:grid; grid-template-columns:200px 1fr; gap:28px; align-items:center;
-    background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius);
-    padding:26px;
+    display:grid; grid-template-columns:200px 1fr; gap:32px; align-items:center;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px;
   }
   .avatar{
     width:180px; height:180px; border-radius:24px; overflow:hidden;
     display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:40px;
-    background:conic-gradient(from 220deg, var(--acc), var(--acc2), var(--gold), var(--acc));
-    box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--fg) 20%, transparent);
+    background:conic-gradient(from 220deg, var(--acc), #b98cff, var(--gold), var(--acc));
+    box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--fg) 18%, transparent);
   }
   .avatar img{width:100%; height:100%; object-fit:cover; display:block}
-  .author h3{margin:0 0 4px; font-size:22px}
+  .author h3{margin:0 0 4px; font-size:24px; font-weight:600}
   .author .nick{color:var(--gold); font-family:var(--mono); font-size:15px}
-  .author p{color:var(--fg2); margin:10px 0 0; font-size:14.5px}
+  .author p{color:var(--fg2); margin:10px 0 0; font-size:15px}
 
   /* stats */
-  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:20px}
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:24px}
   .stat{
-    background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius-sm);
-    padding:18px 20px; text-align:center;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:22px 20px; text-align:center;
   }
-  .stat .n{font-size:26px; font-weight:800; color:var(--acc)}
+  .stat .n{font-size:30px; font-weight:600; color:var(--fg); letter-spacing:-.02em}
   .stat .l{color:var(--fg2); font-size:13px; margin-top:4px}
 
   /* docs banner */
   .docs-banner{
     display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
     background:
-      radial-gradient(700px 260px at 0% 0%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 65%),
-      var(--bg2);
+      radial-gradient(700px 260px at 0% 0%, color-mix(in srgb, var(--acc) 55%, transparent), transparent 65%),
+      var(--surface);
     border:1px solid var(--line); border-radius:var(--radius);
-    padding:28px 32px;
+    padding:36px 40px;
   }
-  .docs-banner h3{margin:0 0 6px; font-size:20px}
-  .docs-banner p{margin:0; color:var(--fg2); font-size:14.5px; max-width:60ch}
+  .docs-banner h3{margin:0 0 6px; font-size:24px; font-weight:600}
+  .docs-banner p{margin:0; color:var(--fg2); font-size:15px; max-width:60ch}
 
   /* contact */
   .contact{
     background:
-      radial-gradient(1000px 400px at 10% -10%, color-mix(in srgb, var(--acc) 20%, transparent), transparent 60%),
-      radial-gradient(800px 300px at 110% 110%, color-mix(in srgb, var(--acc2) 16%, transparent), transparent 60%),
-      var(--bg2);
+      radial-gradient(1000px 400px at 10% -10%, color-mix(in srgb, var(--acc) 55%, transparent), transparent 60%),
+      radial-gradient(800px 300px at 110% 110%, color-mix(in srgb, #b98cff 32%, transparent), transparent 60%),
+      var(--surface);
     border:1px solid var(--line); border-radius:var(--radius);
-    padding:44px; text-align:center;
+    padding:56px 44px; text-align:center;
   }
   .mail{
     display:inline-flex; align-items:center; gap:10px; margin-top:18px;
     font-family:var(--mono); font-size:clamp(15px,2vw,20px);
-    background:var(--bg); border:1px solid var(--line); border-radius:12px;
-    padding:12px 20px; color:var(--fg);
+    background:var(--bg); border:1px solid var(--line); border-radius:var(--pill);
+    padding:14px 24px; color:var(--fg);
     cursor:pointer; transition:border-color .2s, color .2s;
   }
   .mail:hover{border-color:var(--acc); text-decoration:none}
-  .mail.copied{border-color:var(--acc2); color:var(--acc2)}
+  .mail.copied{border-color:var(--green); color:var(--green)}
 
   .linklike{
     background:none; border:none; padding:0; margin:0;
-    color:var(--acc); font:inherit; cursor:pointer;
+    color:var(--fg2); font:inherit; cursor:pointer;
   }
-  .linklike:hover{text-decoration:underline}
-  .linklike.copied{color:var(--acc2)}
+  .linklike:hover{text-decoration:underline; color:var(--fg)}
+  .linklike.copied{color:var(--green)}
 
   /* footer */
-  footer{border-top:1px solid var(--line); padding:26px 22px; color:var(--muted); font-size:13px}
+  footer{border-top:1px solid var(--line); padding:32px 24px; color:var(--muted); font-size:13.5px}
   footer .wrap{display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
 
   /* ---------- responsive ---------- */
   @media (max-width: 960px){
-    .hero-grid{grid-template-columns:1fr; gap:32px}
-    .hero{padding-top:56px}
+    .hero-grid{grid-template-columns:1fr; gap:36px}
+    .hero{padding-top:64px}
     .grid.g3{grid-template-columns:1fr 1fr}
     .stats{grid-template-columns:repeat(2,1fr)}
     .author{grid-template-columns:1fr; text-align:center}
     .avatar{margin:0 auto}
   }
   @media (max-width: 620px){
-    section{padding:52px 18px}
+    section{padding:64px 18px}
     .grid.g3, .grid.g2{grid-template-columns:1fr}
-    .contact{padding:28px 18px}
-    .docs-banner{padding:22px 18px}
-    nav.links a{padding:6px 8px; font-size:13px}
-    .topbar{gap:10px}
+    .contact{padding:36px 20px}
+    .docs-banner{padding:26px 20px}
+    nav.links a{padding:8px 10px; font-size:13.5px}
+    .topbar{gap:10px; padding:12px 16px}
   }
 
   /* fade-in on scroll */
@@ -266,8 +268,9 @@
       <h1>Игровой движок <span>без лишнего веса</span></h1>
       <p class="lead">
         Silver Diamond Game Engine — компактный, но полноценный движок на чистом C99.
-        Один шейдер для всего, zero-copy загрузка glTF, свой сканер JSON и атлас шрифтов,
-        2D/3D физика и spatial-аудио. Собран одним человеком — с вниманием к каждой строке.
+        Один шейдер для всего: PBR-lite, текстуры и скелетная анимация из glTF/GLB,
+        свой сканер JSON и атлас шрифтов, физика 2D/3D, spatial-аудио и редактор сцен.
+        Собран одним человеком — с вниманием к каждой строке.
       </p>
       <div class="cta">
         <a class="btn primary" href="documentation.html">Документация</a>
@@ -332,19 +335,19 @@ while (!sdge_window_should_close(w)) {
         <p>Один GLSL-шейдер на весь мир. Ambient, sun и до 8 point lights, GGX-спекуляр,<br>frustum culling по bounding sphere.</p>
       </div>
       <div class="card reveal">
-        <div class="icon">🧊</div>
-        <h3>GPU-меши и скиннинг</h3>
-        <p>Загрузка glTF-примитива напрямую в GPU. Float-атрибуты читаются zero-copy,<br>скиннинг интерливится <code>(joint, weight) × 4</code>.</p>
+        <div class="icon">🖌️</div>
+        <h3>Текстуры и материалы</h3>
+        <p>До пяти слотов на материал: base color, metallic-roughness, normal, occlusion, emissive.<br>sRGB для цвета, alpha-режимы, <code>KHR_texture_transform</code> — через stb_image.</p>
       </div>
       <div class="card reveal">
         <div class="icon">📦</div>
         <h3>glTF 2.0</h3>
-        <p>Загрузчик <code>.glb</code> и <code>.gltf + .bin</code>: ноды, меши, скины, анимации<br>(LINEAR / STEP / CUBICSPLINE), PBR-факторы. Вся модель — в одной арене.</p>
+        <p>Загрузчик <code>.glb</code> и <code>.gltf + .bin</code>: несколько буферов, percent-encoded пути,<br>UTF-8 BOM, нормализованные accessor'ы. Тяжёлые сцены — в одной арене.</p>
       </div>
       <div class="card reveal">
         <div class="icon">🦴</div>
-        <h3>Анимации со скелетом</h3>
-        <p>Топологический порядок, ленивый семплинг, кэш skin-палитры.<br>Ключи ищутся бинарным поиском — только анимированные ноды.</p>
+        <h3>Скелетная анимация</h3>
+        <p>LINEAR / STEP / CUBICSPLINE, топологический порядок и ленивый семплинг,<br>кэш skin-палитры. Скиннинг <code>(joint, weight) × 4</code> интерливится в GPU.</p>
       </div>
       <div class="card reveal">
         <div class="icon">🖼️</div>
@@ -359,7 +362,7 @@ while (!sdge_window_should_close(w)) {
       <div class="card reveal">
         <div class="icon">⚙️</div>
         <h3>2D и 3D физика</h3>
-        <p>Круги/сферы и OBB. SAT по 15 осям для боксов, контактный манифолд клиппингом граней.<br>Sequential impulses, трение, restitution, sleep.</p>
+        <p>Круги/сферы и OBB, SAT по 15 осям, sequential impulses, трение и sleep.<br>Ориентация — кватернион, инерция — диагональный тензор, стабильные указатели на тела.</p>
       </div>
       <div class="card reveal">
         <div class="icon">🔊</div>
@@ -369,7 +372,7 @@ while (!sdge_window_should_close(w)) {
       <div class="card reveal">
         <div class="icon">🧰</div>
         <h3>Редактор сцен</h3>
-        <p>Докинг-интерфейс в духе Dear ImGui: дерево сцены, инспектор,<br>viewport и консоль. Сцены сохраняются в обычный <code>.gltf</code>.</p>
+        <p>Дерево узлов, гизмо move/rotate/scale с ограничением по оси и наложение текстуры<br>на отдельный узел. Экспорт в glTF 2.0 + <code>.bin</code> с встроенными изображениями.</p>
       </div>
     </div>
   </div>
@@ -395,7 +398,7 @@ while (!sdge_window_should_close(w)) {
         <ul>
           <li>glad подключается <em>внутри</em> рендерера — приложение не видит GL-заголовков.</li>
           <li>Свой JSON-сканер (jsmn-style), свой WAV-декодер, свой CFF-парсер.</li>
-          <li>Из внешних библиотек — только GLFW-подобное окно (Win32/X11 напрямую) и minimp3.</li>
+          <li>Внешних библиотек всего три: glad (загрузчик GL), stb_image и minimp3; окно — напрямую Win32/X11.</li>
         </ul>
       </div>
       <div class="card reveal">
@@ -427,7 +430,7 @@ while (!sdge_window_should_close(w)) {
         <h3>Формат, который переживёт движок</h3>
         <ul>
           <li>Сцены редактора — обычный glTF 2.0, открываются в любом вьюере.</li>
-          <li>Материалы и lights хранятся в <code>extras.sdge</code>, не ломая спецификацию.</li>
+          <li>Экспорт редактора — glTF 2.0 + <code>.bin</code>, изображения встроены как data-URI: пара файлов открывается в любом вьюере.</li>
           <li>Не нужно конвертировать ассеты через сторонние тулзы.</li>
         </ul>
       </div>
