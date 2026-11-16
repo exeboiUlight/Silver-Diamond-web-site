@@ -196,6 +196,7 @@
   .st { color: #a5d6ff; }
   .cm { color: #8b949e; font-style: italic; }
   .num { color: #f2cc60; }
+  .pp  { color: #ffa657; }
 
   /* --------------------------------------------------------------- callout */
   .note, .warn, .tip, .danger {
@@ -2240,6 +2241,7 @@ cp -r assets build/assets</code></pre>
 </div>
 
 <script>
+  /* ── подсветка активного пункта меню ─────────────────────────────── */
   (function () {
     var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
     var targets = links
@@ -2264,6 +2266,160 @@ cp -r assets build/assets</code></pre>
     }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
 
     targets.forEach(function (t) { observer.observe(t); });
+  })();
+
+  /* ── подсветка синтаксиса в <pre><code> ──────────────────────────── */
+  (function () {
+    const escapeHtml = s => s.replace(/[&<>]/g,
+      c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+    const C_KW = new Set(('if else for while do switch case default break continue ' +
+      'return goto sizeof typedef struct union enum static extern register ' +
+      'volatile const inline restrict auto').split(' '));
+
+    const C_TY = new Set(('void char short int long float double signed unsigned bool ' +
+      'size_t FILE NULL true false int8_t int16_t int32_t int64_t ' +
+      'uint8_t uint16_t uint32_t uint64_t intptr_t uintptr_t ptrdiff_t').split(' '));
+
+    const SH_KW  = new Set('shader uniform vertex fragment return discard if else'.split(' '));
+    const SH_TY  = new Set('void bool int float vec2 vec3 vec4 mat2 mat3 mat4 sampler2D true false'.split(' '));
+    const SH_VAR = new Set(('position normal tangent uv uv1 albedo metallic roughness ' +
+      'occlusion emissive alpha bitangent worldPos cameraPos viewDir lightDir ' +
+      'sunDir sunColor sunIntensity ambient baseColor color time resolution ' +
+      'screenUV fragCoord frontFacing vertexNormal').split(' '));
+
+    const SHELL_KW  = new Set('if then else fi for do done while function export local source exit return'.split(' '));
+    const SHELL_CMD = new Set('gcc g++ python python3 copy xcopy cp mv rm mkdir cd make ls cat echo'.split(' '));
+
+    const PREFIX = /^(sdg|sdph|sdui)/i;
+
+    function detectLang(text) {
+      if (/\bshader\s+\w+\s*\{|\b(vertex|fragment)\s*\{|\buniform\s+\w+/.test(text)) return 'shader';
+      if (/^\s*(gcc|g\+\+|python|python3|copy|xcopy|cp|mv|rm|mkdir|cd|make|build[\/\\])/m.test(text)) return 'shell';
+      return 'c';
+    }
+
+    function tokenize(text, lang) {
+      const tokens = [];
+      const n = text.length;
+      let i = 0;
+
+      let KW, TY, VARS;
+      if (lang === 'shader') { KW = SH_KW; TY = SH_TY; VARS = SH_VAR; }
+      else if (lang === 'shell') { KW = SHELL_KW; TY = new Set(); VARS = new Set(); }
+      else { KW = C_KW; TY = C_TY; VARS = new Set(); }
+
+      while (i < n) {
+        const c = text[i];
+
+        // Комментарий //
+        if (c === '/' && text[i + 1] === '/') {
+          let j = i;
+          while (j < n && text[j] !== '\n') j++;
+          tokens.push({ t: 'cm', v: text.slice(i, j) }); i = j; continue;
+        }
+        // Комментарий /* */
+        if (c === '/' && text[i + 1] === '*') {
+          let j = i + 2;
+          while (j < n - 1 && !(text[j] === '*' && text[j + 1] === '/')) j++;
+          j = Math.min(j + 2, n);
+          tokens.push({ t: 'cm', v: text.slice(i, j) }); i = j; continue;
+        }
+        // Shell-комментарий
+        if (lang === 'shell' && c === '#' && (i === 0 || /\s/.test(text[i - 1]))) {
+          let j = i;
+          while (j < n && text[j] !== '\n') j++;
+          tokens.push({ t: 'cm', v: text.slice(i, j) }); i = j; continue;
+        }
+
+        // Строка
+        if (c === '"' || c === "'") {
+          let j = i + 1;
+          while (j < n && text[j] !== c && text[j] !== '\n') {
+            if (text[j] === '\\') j++;
+            j++;
+          }
+          j = Math.min(j + 1, n);
+          tokens.push({ t: 'st', v: text.slice(i, j) }); i = j; continue;
+        }
+
+        // Препроцессор (C)
+        if (lang === 'c' && c === '#' && (i === 0 || text[i - 1] === '\n')) {
+          let j = i;
+          while (j < n && text[j] !== '\n') j++;
+          tokens.push({ t: 'pp', v: text.slice(i, j) }); i = j; continue;
+        }
+
+        // Число
+        if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(text[i + 1] || ''))) {
+          let j = i;
+          if (c === '0' && (text[i + 1] === 'x' || text[i + 1] === 'X')) {
+            j = i + 2;
+            while (j < n && /[0-9a-fA-F]/.test(text[j])) j++;
+          } else {
+            while (j < n && /[0-9.]/.test(text[j])) j++;
+            if (j < n && (text[j] === 'e' || text[j] === 'E')) {
+              const nx = text[j + 1], nx2 = text[j + 2];
+              if (/[0-9]/.test(nx || '') ||
+                  ((nx === '+' || nx === '-') && /[0-9]/.test(nx2 || ''))) {
+                j++;
+                if (text[j] === '+' || text[j] === '-') j++;
+                while (j < n && /[0-9]/.test(text[j])) j++;
+              }
+            }
+          }
+          while (j < n && /[uUlLfF]/.test(text[j])) j++;
+          tokens.push({ t: 'num', v: text.slice(i, j) }); i = j; continue;
+        }
+
+        // Идентификатор
+        if (/[A-Za-z_]/.test(c)) {
+          let j = i + 1;
+          while (j < n && /[A-Za-z0-9_]/.test(text[j])) j++;
+          const word = text.slice(i, j);
+
+          let k = j;
+          while (k < n && (text[k] === ' ' || text[k] === '\t')) k++;
+          const isCall = text[k] === '(';
+
+          let t = null;
+          if (KW.has(word))                       t = 'kw';
+          else if (TY.has(word))                  t = 'ty';
+          else if (VARS.has(word))                t = 'ty';
+          else if (lang === 'shell' && SHELL_CMD.has(word)) t = 'fn';
+          else if (PREFIX.test(word))             t = isCall ? 'fn' : 'ty';
+          else if (isCall)                        t = 'fn';
+
+          tokens.push({ t: t, v: word }); i = j; continue;
+        }
+
+        // Пробелы
+        if (/\s/.test(c)) {
+          let j = i;
+          while (j < n && /\s/.test(text[j])) j++;
+          tokens.push({ t: null, v: text.slice(i, j) }); i = j; continue;
+        }
+
+        tokens.push({ t: null, v: c }); i++;
+      }
+      return tokens;
+    }
+
+    function highlight(pre) {
+      const code = pre.querySelector('code');
+      if (!code) return;
+      const text = code.textContent;
+      const lang = detectLang(text);
+      const tokens = tokenize(text, lang);
+      let html = '';
+      for (const tok of tokens) {
+        const esc = escapeHtml(tok.v);
+        html += tok.t ? `<span class="${tok.t}">${esc}</span>` : esc;
+      }
+      code.innerHTML = html;
+    }
+
+    document.querySelectorAll('pre').forEach(highlight);
   })();
 </script>
 </body>
