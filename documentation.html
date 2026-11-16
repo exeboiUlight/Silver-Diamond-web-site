@@ -334,6 +334,7 @@
     <div class="group">Основа</div>
     <a href="#window">Окно и ввод</a>
     <a href="#renderer">Рендерер</a>
+    <a href="#shaders">Свои шейдеры</a>
     <a href="#math">Математика</a>
     <a href="#camera3d">3D-камера</a>
     <a href="#lighting">Свет</a>
@@ -943,6 +944,245 @@ sdgr_draw_mesh(&amp;box, world, NULL, 0, color, 0, 0.5f, 0, 0);
 
 sdge_mesh_destroy(&amp;box);
 sdge_mesh_destroy(&amp;sphere);</code></pre>
+
+<!-- =============================================================== SHADERS -->
+<h2 id="shaders">Свои шейдеры <a class="anchor" href="#shaders">#</a></h2>
+
+<p>
+  Движок содержит небольшой собственный язык шейдеров (файлы
+  <code>.sdshader</code>). Это не «сырой» GLSL: программа транслируется
+  в готовую пару GLSL 330 vertex/fragment, которая использует тот же
+  скелетный трансформ, материалы, текстуры, нормал-мапы и освещение, что
+  и встроенный PBR-проход. Игре не нужно подключать <code>glad</code> или
+  знать про OpenGL.
+</p>
+
+<p>Минимальный шейдер выглядит так:</p>
+
+<pre><code>shader glow {
+    uniform float intensity;
+
+    vertex {
+        position.y += sin(time + position.x * 4.0) * 0.03;
+    }
+
+    fragment {
+        vec3 lit = pbrLighting(normal, albedo, metallic, roughness);
+        color.rgb = mix(lit, vec3(0.2, 0.8, 1.0), intensity);
+        color.a   = baseColor.a;
+    }
+}</code></pre>
+
+<p>
+  Обёртка <code>shader имя { ... }</code> необязательна. Если блок
+  <code>fragment</code> не указан, весь код верхнего уровня считается
+  фрагментным. Пустой файл даёт обычный PBR-рендер.
+</p>
+
+<h3>Структура программы</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Часть</th><th>Описание</th></tr></thead>
+  <tbody>
+    <tr><td><code>uniform тип имя;</code></td><td>Пользовательский uniform. Объявляется в начале, до блоков <code>vertex</code>/<code>fragment</code>.</td></tr>
+    <tr><td><code>vertex { ... }</code></td><td>Необязательный блок: меняет <code>position</code>, <code>normal</code>, <code>uv</code>, <code>uv1</code> до скиннинга и проекции.</td></tr>
+    <tr><td><code>fragment { ... }</code></td><td>Необязательный блок: вычисляет итоговый <code>color</code>.</td></tr>
+    <tr><td>код верхнего уровня</td><td>Если блоков нет — это фрагментный код.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Поддерживаются комментарии <code>// ...</code> и <code>/* ... */</code>,
+  числа с плавающей точкой (<code>1.0</code>, <code>.5</code>,
+  <code>1e-3</code>), логические <code>true</code>/<code>false</code>,
+  операторы <code>+ - * / %</code>, сравнения <code>&lt; &lt;= &gt; &gt;= == !=</code>,
+  логические <code>&amp;&amp; || !</code>, присваивания
+  <code>= += -= *= /=</code>, а также <code>if / else</code>.
+  Строки, массивы, структуры, циклы, пользовательские функции и
+  препроцессор не поддерживаются.
+</p>
+
+<h3>Типы и объявления</h3>
+
+<pre><code>uniform float time_scale;     /* float, int, bool, vec2, vec3, vec4,
+                                 sampler2D                              */
+float    pulse = sin(time) * 0.5 + 0.5;
+vec3     tint  = vec3(0.2, 0.8, 1.0);
+vec4     tint4 = vec4(tint, 1.0);
+bool     bright = pulse &gt; 0.75;
+
+if (bright) {
+    color.rgb = tint;
+} else {
+    color.rgb = albedo;
+}
+if (uv.x &lt; 0.02) discard;
+return;                       /* допустимо только во фрагменте */</code></pre>
+
+<p>
+  Имена переменных объявляются в области видимости блока. Повторное
+  объявление и имена встроенных переменных/функций запрещены. Пишите
+  вещественные литералы с точкой: <code>1.0</code>, а не <code>1</code>.
+</p>
+
+<h3>Встроенные переменные</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Блок</th><th>Переменные</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>vertex</code></td>
+      <td><code>position</code> (vec3), <code>normal</code> (vec3),
+          <code>uv</code> (vec2), <code>uv1</code> (vec2),
+          <code>tangent</code> (vec4), <code>time</code> (float),
+          <code>resolution</code> (vec2)</td>
+    </tr>
+    <tr>
+      <td><code>fragment</code></td>
+      <td><code>uv</code>, <code>uv1</code>, <code>normal</code> (нормаль
+          после normal map), <code>vertexNormal</code>,
+          <code>worldPos</code>, <code>cameraPos</code>, <code>viewDir</code>,
+          <code>lightDir</code>, <code>sunDir</code>, <code>sunColor</code>,
+          <code>sunIntensity</code>, <code>ambient</code>,
+          <code>baseColor</code> (vec4, цвет материала × текстура),
+          <code>albedo</code> (vec3), <code>metallic</code>,
+          <code>roughness</code>, <code>occlusion</code>,
+          <code>emissive</code>, <code>alpha</code>, <code>tangent</code>,
+          <code>bitangent</code>, <code>time</code>, <code>resolution</code>,
+          <code>screenUV</code>, <code>fragCoord</code>,
+          <code>frontFacing</code></td>
+    </tr>
+    <tr>
+      <td>результат</td>
+      <td><code>color</code> (vec4). Изначально чёрный с
+          <code>color.a = baseColor.a</code>. Именно он выводится в кадр.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Если фрагментный код не задан, используется стандартное освещение:
+  <code>color.rgb = pbrLighting(normal, albedo, metallic, roughness) + emissive</code>.
+  <code>discard</code> и <code>return;</code> работают только во фрагменте;
+  <code>return;</code> перед выходом автоматически записывает
+  <code>color</code> в выходной буфер.
+</p>
+
+<h3>Встроенные функции</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Группа</th><th>Функции</th></tr></thead>
+  <tbody>
+    <tr><td>Математика</td><td><code>radians, degrees, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, pow, exp, log, exp2, log2, sqrt, inversesqrt, abs, sign, floor, trunc, round, roundEven, ceil, fract, mod, min, max, clamp, mix, step, smoothstep</code></td></tr>
+    <tr><td>Векторы</td><td><code>length, distance, dot, cross, normalize, faceforward, reflect, refract</code></td></tr>
+    <tr><td>Текстуры</td><td><code>texture, textureLod, textureSize, texelFetch, dFdx, dFdy, fwidth</code></td></tr>
+    <tr><td>Конструкторы</td><td><code>float, int, bool, vec2, vec3, vec4, mat2, mat3, mat4</code></td></tr>
+    <tr><td>Освещение</td><td><code>pbrLighting(N, albedo, metallic, roughness)</code>, <code>pbr(...)</code> — то же самое</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Загрузка и вызов из C</h3>
+
+<pre><code>#include &lt;sdge.h&gt;
+
+char error[1024];
+sdgr_shader *shader = sdgr_shader_load_file("materials/glow.sdshader",
+                                            error, sizeof(error));
+if (!shader) {
+    fprintf(stderr, "shader: %s\n", error);
+}
+
+/* uniform-ы, объявленные в шейдере */
+sdgr_shader_set_float(shader, "intensity", 0.75f);
+sdgr_shader_set_vec3 (shader, "tint", 0.2f, 0.8f, 1.0f);
+sdgr_shader_set_time (shader, elapsed_seconds);
+
+/* модель целиком */
+sdge_model_set_shader(model, shader);
+sdge_model_draw(model, NULL);
+
+/* или один меш вручную */
+sdgr_draw_mesh_shader(&amp;mesh, world, joints, joint_count,
+                      &amp;material, &amp;textures, shader);
+
+sdge_model_set_shader(model, NULL);   /* вернуть встроенный PBR */
+sdgr_shader_destroy(shader);          /* модель шейдер не владеет */</code></pre>
+
+<p>
+  <code>sdgr_shader_compile(source, error, error_size)</code> принимает
+  строку с исходником. <code>sdgr_shader_load_file()</code> читает файл.
+  При ошибке языка или GLSL обе функции возвращают <code>NULL</code> и
+  пишут сообщение вида <code>3:14: unknown variable 'nope'</code>.
+  Сгенерированный GLSL можно посмотреть через
+  <code>sdgr_shader_vertex_glsl()</code> и
+  <code>sdgr_shader_fragment_glsl()</code>.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Функция</th><th>Назначение</th></tr></thead>
+  <tbody>
+    <tr><td><code>sdgr_shader_compile</code></td><td>Компилирует исходник из строки.</td></tr>
+    <tr><td><code>sdgr_shader_load_file</code></td><td>Читает и компилирует <code>.sdshader</code>.</td></tr>
+    <tr><td><code>sdgr_shader_valid</code></td><td>1, если шейдер готов к рисованию.</td></tr>
+    <tr><td><code>sdgr_shader_destroy</code></td><td>Удаляет GL-программу и исходники.</td></tr>
+    <tr><td><code>sdgr_shader_set_float/int/vec2/vec3/vec4</code></td><td>Задаёт uniform; возвращает 1 при успехе.</td></tr>
+    <tr><td><code>sdgr_shader_set_texture</code></td><td>Привязывает GL-текстуру к <code>sampler2D</code>-uniform.</td></tr>
+    <tr><td><code>sdgr_shader_set_time</code></td><td>Значение встроенной переменной <code>time</code>.</td></tr>
+    <tr><td><code>sdgr_draw_mesh_shader</code></td><td>Рисует меш с пользовательским шейдером.</td></tr>
+    <tr><td><code>sdge_model_set_shader</code></td><td>Назначает шейдер всей модели (<code>NULL</code> — сброс).</td></tr>
+    <tr><td><code>sdge_model_shader</code></td><td>Текущий шейдер модели или <code>NULL</code>.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Свои текстуры</h3>
+
+<pre><code>shader masked {
+    uniform sampler2D mask;
+
+    fragment {
+        vec4 m = texture(mask, uv);
+        if (m.r &lt; 0.5) discard;
+        color.rgb = albedo * m.rgb;
+        color.a   = baseColor.a * m.a;
+    }
+}</code></pre>
+
+<pre><code>unsigned mask_tex = /* sdgr_upload_texture(...) */;
+sdgr_shader_set_texture(shader, "mask", mask_tex);</code></pre>
+
+<p>
+  Пользовательские сэмплеры занимают текстурные юниты начиная с
+  <b>5</b> (юниты 0–4 — пять стандартных слотов материала). Одному
+  шейдеру доступно до <b>32</b> uniform-ов.
+</p>
+
+<div class="tip">
+  <span class="label">Совет</span>
+  Готовый пример: <code>demos/glow.sdshader</code> и
+  <code>demos/shader_demo.c</code>. Сборка и запуск:
+  <code>python build.py demo --demo shader_demo</code>.
+  Без аргументов демо рисует сгенерированную сферу, с аргументом
+  <code>model.glb</code> — модель с тем же шейдером.
+</div>
+
+<h3>Ограничения</h3>
+
+<ul>
+  <li>Шейдер меняет только <code>position</code>/<code>normal</code>/<code>uv</code> в вершинном блоке и итоговый <code>color</code> во фрагментном. Заменить скиннинг, проекцию или PBR-пайплайн целиком нельзя.</li>
+  <li>Нет пользовательских функций, циклов, массивов, структур, <code>in/out</code>-переменных между стадиями и препроцессора.</li>
+  <li>Uniform-ы объявляются до блоков кода; тип при вызове сеттера должен совпадать (<code>int</code> и <code>bool</code> взаимозаменяемы).</li>
+  <li>Вершинный блок должен идти до фрагментного. <code>discard</code>/<code>return</code> — только во фрагменте.</li>
+  <li>Изменение <code>normal</code> в вершинном блоке не пересчитывает касательные и normal map автоматически.</li>
+  <li>Ошибки GLSL (например, несовпадение типов аргументов) возвращаются драйвером в <code>error</code>; исходный GLSL доступен для отладки.</li>
+</ul>
 
 <!-- ================================================================ MATH -->
 <h2 id="math">Математика <a class="anchor" href="#math">#</a></h2>
